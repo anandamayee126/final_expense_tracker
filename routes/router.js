@@ -24,7 +24,7 @@ router.post('/signup',(req,res) => {
 })
 
 router.post('/login',async(req,res)=>{
-    const name= req.body.name;
+    // const name= req.body.name;
     const email= req.body.email;
     const password= req.body.password;
 
@@ -36,13 +36,18 @@ router.post('/login',async(req,res)=>{
         res.json({success:false, status:404, message:"User not found .... Please signup first"});
     }
     else{
-        if(password!=exist_email.password)
-        {
-            res.json({success:false, status:401, message:"User not authorized"});
-        }
-        else{
-            res.json({success:true,message:"User login successfull"});
-        }
+        bcrypt.compare(password,exist_email.password,(err,result)=>{
+            if(err){
+                res.json({success:false,message:"Something went wrong"});
+            }
+            else if(result===true){
+                res.json({success:true,message:"User login successfull"});
+
+            }
+            else{
+                res.json({success:false,status:401, message:"Password Incorrect"});
+            }
+        })
     }
 })
 
