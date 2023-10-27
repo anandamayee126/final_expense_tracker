@@ -51,4 +51,12 @@ router.post('/login',async(req,res)=>{
     }
 })
 
+
+router.post('/dailyExpense',(req,res)=>{
+    const amount= req.body.amount;
+    const description = req.body.description;
+    const category= req.body.category;
+
+    
+})
 module.exports = router;
