@@ -1,8 +1,7 @@
-const form= document.getElementById('my-form');
-form.addEventListener('submit', addUser);
+const login= document.getElementById('login');
+login.addEventListener('submit', checkUser);
 
-function addUser(e){
-    e.preventDefault();
+function checkUser(e){
     const name= e.target.name.value;
     const email= e.target.email.value;
     const password= e.target.password.value;
@@ -11,9 +10,9 @@ function addUser(e){
         name,email,password
     }
 
-    const post= axios.post('http://localhost:4000/user/signup',user).then((response)=>{
+    const post= axios.post('http://localhost:4000/user/login',user).then((response)=>{
         console.log(response);
     }).catch(err => {
         console.log(err);
     })
-} 
+}
