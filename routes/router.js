@@ -18,14 +18,14 @@ router.post('/signup',(req,res) => {
 
 })
 
-router.post('/login',(req,res)=>{
+router.post('/login',async(req,res)=>{
     const name= req.body.name;
     const email= req.body.email;
     const password= req.body.password;
 
 
-    const exist_email= User.findOne({where: {email:email}});
-    console.log("ex",exist_email);
+    const exist_email= await User.findOne({where: {email:email}});
+    console.log(exist_email);
 
     if(exist_email==null){
         res.json({success:false,message:"User not found .... Please signup first"});

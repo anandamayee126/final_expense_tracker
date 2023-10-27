@@ -2,6 +2,7 @@ const login= document.getElementById('login');
 login.addEventListener('submit', checkUser);
 
 function checkUser(e){
+    e.preventDefault()
     const name= e.target.name.value;
     const email= e.target.email.value;
     const password= e.target.password.value;
@@ -10,7 +11,7 @@ function checkUser(e){
         name,email,password
     }
 
-    const post= axios.post('http://localhost:4000/user/login',user).then((response)=>{
+    axios.post('http://localhost:4000/user/login',user).then((response)=>{
         console.log(response);
     }).catch(err => {
         console.log(err);
