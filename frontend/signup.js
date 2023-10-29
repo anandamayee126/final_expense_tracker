@@ -14,6 +14,7 @@ function addUser(e){
 
     const post= axios.post('http://localhost:4000/user/signup',user).then((response)=>{
         console.log(response);
+        window.location="login.html";
     }).catch(err => {
         console.log(err);
     })

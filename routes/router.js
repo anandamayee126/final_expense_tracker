@@ -2,8 +2,9 @@ const express= require('express');
 const router= express.Router();
 const User= require('../models/user_db');
 const bcrypt= require('bcrypt');
-const Expense= require('../models/expense_db');
+const Expense= require('../models/expense');
 const jwt= require('jsonwebtoken');
+const middleware= require('../middleware/auth');
 
 
 
@@ -23,7 +24,7 @@ router.post('/signup',(req,res) => {
         bcrypt.hash(password, saltRounds,async(err,hash) => {
         console.log(err);
         const newUser= await User.create({name:name,email:email,password:hash});
-        userId=newUser.id;
+       // userId=newUser.id;
         res.json({success: true,message:'new user registered'});
        })
     }
@@ -32,7 +33,7 @@ router.post('/signup',(req,res) => {
 
 function tokenCreation(userId)
 {
-    return jwt.sign({userId:userId},'987654345678889desewer5678hytrewsdfgt678');
+    return jwt.sign({userId:userId},'secretKey');    ////////////////
 }
 
 router.post('/login',async(req,res)=>{
@@ -62,27 +63,35 @@ router.post('/login',async(req,res)=>{
 })
 
 
-router.post('/dailyExpense',(req,res)=>{
+router.post('/dailyExpense',middleware,(req,res)=>{
     const amount= req.body.amount;
     const description = req.body.description;
     const category= req.body.category;
-    const userDbId= userId;
+
+      
     
 
     const expense= {
-        amount,description,category,userDbId
+        amount,description,category
     }
-    userId=null;
-    const request= Expense.create(expense).then(response => {
+    
+    req.user.createExpense(expense).then(response => {
         console.log(response);
-    }).catch(err => {
-        console.log(err);
-    })
+        res.json(response);
+    }).catch(err => {console.error(err)});
 })
 
-router.get('/',(req,res) => {
-    Expense.findAll({where:{userDbId:userId}});
-
+router.get('/getExpense',middleware,(req,res) => {
+    
+    req.user.getExpenses().then(response=>res.json(response)).catch(err => { throw new Error(err)})
 })
+
+
+router.delete('/delete/:id', (req,res) => {
+   
+        Expense.destroy({where:{id:req.params.id}}).then((response) => res.json({success: true, message:"deleted ->  "+response})).catch(err => { throw new Error(err)})
+ 
+})
+
 module.exports = router;
 

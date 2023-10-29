@@ -3,7 +3,7 @@ const app = express();
 const cors= require('cors');
 const router= require('./routes/router');
 const User= require('./models/user_db');
-const Expense= require('./models/expense_db');
+const Expense= require('./models/expense');
 const sequelize= require('./util/db');
 
 app.use(cors());

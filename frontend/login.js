@@ -15,9 +15,10 @@ async function checkUser(e){
     const login= await axios.post('http://localhost:4000/user/login',user)
     
     console.log("login",login);
-    // if(login.data.success==true){
-        //window.location="daily_expense.html";
-    // }
-    console.log(login.data.token);
+    if(login.data.success===true){
+       localStorage.setItem('token',login.data.token);
+        window.location="daily_expense.html";
+    }
+    
     
 }

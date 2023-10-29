@@ -1,6 +1,6 @@
 const Sequelize= require('sequelize');
 const sequelize= require('../util/db');
-const Expense= sequelize.define('expense_db',{
+const Expense= sequelize.define('expense',{
     id:{
         type: Sequelize.INTEGER,
         allowNull: false,
