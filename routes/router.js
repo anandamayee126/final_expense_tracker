@@ -1,10 +1,11 @@
 const express= require('express');
 const router= express.Router();
-const User= require('../models/user_db');
+const User= require('../models/user');
 const bcrypt= require('bcrypt');
 const Expense= require('../models/expense');
 const jwt= require('jsonwebtoken');
 const middleware= require('../middleware/auth');
+const Razorpay= require('razorpay');
 
 
 
@@ -92,6 +93,31 @@ router.delete('/delete/:id', (req,res) => {
         Expense.destroy({where:{id:req.params.id}}).then((response) => res.json({success: true, message:"deleted ->  "+response})).catch(err => { throw new Error(err)})
  
 })
+
+router.get('/premiumMembership',async(req, res) => {
+    try{
+        var rzp= new Razorpay({
+            key_id: process.env.RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_KEY_SECRET
+        })
+        const amount=2500;
+        rzp.orders.create({amount,currency:"INR"},(err,order) => {
+            if(err){
+                throw new Error(JSON.stringify(err));
+            }
+            req.user.createOrder({order_id: order.id,status:"PENDING"}).then(() => {
+                return res.status(201).json({order,key_id:rzp.key_id})
+            }).catch(err => {
+                throw new Error(err);
+            })
+        })
+    }
+    catch{(err) => {
+        throw new Error(err);
+    }}
+})
+
+router.post('/updateTransaction',)
 
 module.exports = router;
 

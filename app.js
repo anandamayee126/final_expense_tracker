@@ -2,15 +2,19 @@ const express = require('express');
 const app = express();
 const cors= require('cors');
 const router= require('./routes/router');
-const User= require('./models/user_db');
+const User= require('./models/user');
 const Expense= require('./models/expense');
 const sequelize= require('./util/db');
+const Order= require('./models/order');
 
 app.use(cors());
 app.use(express.json());
 
 User.hasMany(Expense);
 Expense.belongsTo(User);
+
+User.hasMany(Order);
+Order.belongsTo(User);
 
 app.use('/user',router);
 
