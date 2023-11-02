@@ -90,7 +90,7 @@ router.get('/getExpense',middleware,(req,res) => {
 
 router.delete('/delete/:id', (req,res) => {
    
-        Expense.destroy({where:{id:req.params.id}}).then((response) => res.json({success: true, message:"deleted ->  "+response})).catch(err => { throw new Error(err)})
+        Expense.destroy({where:{id:req.params.id}}).then((response) => res.json({success: true, message:"deleted ->  ",response})).catch(err => { throw new Error(err)})
  
 })
 
@@ -117,7 +117,27 @@ router.get('/premiumMembership',async(req, res) => {
     }}
 })
 
-router.post('/updateTransaction',)
+router.post('/updateTransaction',(req,res)=>{
+    try{
+        const {payment_id,order_id} = req.body;
+        Order.findOne({where:{orderid:order_id}}).then(order=>{
+            order.update({payment_id:payment_id, status:"SUCCESSFULL"}).then(()=>{
+                req.user.update({isPremiumUser:true}).then(()=>{
+                    return res.status(202).json({success:true,message:"Successfully updated"})
+                }).catch(err=>{
+                    console.error(err);
+                })
+            }).catch(err=>{
+                console.error(err);
+            })
+        }).catch(err=>{
+            console.error(err);
+        })
+    }
+    catch{
+        console.error(err);
+    }
+})
 
 module.exports = router;
 
