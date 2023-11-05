@@ -1,12 +1,14 @@
 const express= require('express');
 const router= express.Router();
 const User= require('../models/user');
+const Order= require('../models/order');
 const bcrypt= require('bcrypt');
 const Expense= require('../models/expense');
 const jwt= require('jsonwebtoken');
 const middleware= require('../middleware/auth');
 const Razorpay= require('razorpay');
-
+const dot_env= require('dotenv');
+dot_env.config();
 
 
 let userId=null;
@@ -32,9 +34,9 @@ router.post('/signup',(req,res) => {
 
 })
 
-function tokenCreation(userId)
+function tokenCreation(userId,isPremiumUser)
 {
-    return jwt.sign({userId:userId},'secretKey');    ////////////////
+    return jwt.sign({userId:userId,isPremiumUser},'secretKey');    ////////////////
 }
 
 router.post('/login',async(req,res)=>{
@@ -54,7 +56,7 @@ router.post('/login',async(req,res)=>{
                 res.json({success:false,message:"Something went wrong"});
             }
             else if(result===true){
-                return res.json({success:true,message:"User login successfull",token:tokenCreation(userId)});
+                return res.json({success:true,message:"User login successfull",token:tokenCreation(userId,req.user.isPremiumUser)});
             }
             else{
                 res.status(403).json({success:false,message:"incorrect password"});
@@ -68,9 +70,6 @@ router.post('/dailyExpense',middleware,(req,res)=>{
     const amount= req.body.amount;
     const description = req.body.description;
     const category= req.body.category;
-
-      
-    
 
     const expense= {
         amount,description,category
@@ -94,42 +93,48 @@ router.delete('/delete/:id', (req,res) => {
  
 })
 
-router.get('/premiumMembership',async(req, res) => {
+router.get('/premiumMembership',middleware,async(req, res) => {
     try{
         var rzp= new Razorpay({
             key_id: process.env.RAZORPAY_KEY_ID,
             key_secret: process.env.RAZORPAY_KEY_SECRET
         })
-        const amount=2500;
-        rzp.orders.create({amount,currency:"INR"},(err,order) => {
-            if(err){
-                throw new Error(JSON.stringify(err));
-            }
-            req.user.createOrder({order_id: order.id,status:"PENDING"}).then(() => {
-                return res.status(201).json({order,key_id:rzp.key_id})
-            }).catch(err => {
-                throw new Error(err);
-            })
-        })
+        const options={
+            amount : 2500,
+            currency:"INR"
+        };
+        const order = await rzp.orders.create(options)   
+        console.log("order",order);         
+        // if(err){
+        //         console.log(err);
+        //     }
+
+        //console.log(req.user)
+       
+       await req.user.createOrder({order_id : order.id , status :"PENDING"})
+    //    await Order.create({order_id : order.id , status :"PENDING",userId :userId}) //
+        return res.status(201).json({order,key_id:rzp.key_id})
+         
     }
-    catch{(err) => {
-        throw new Error(err);
-    }}
+    catch(err){
+
+        console.log(err);
+    
+    }
 })
 
-router.post('/updateTransaction',(req,res)=>{
+router.post('/updateTransaction',middleware,(req,res)=>{
     try{
+        console.log("req.body",req.body);
         const {payment_id,order_id} = req.body;
-        Order.findOne({where:{orderid:order_id}}).then(order=>{
-            order.update({payment_id:payment_id, status:"SUCCESSFULL"}).then(()=>{
-                req.user.update({isPremiumUser:true}).then(()=>{
-                    return res.status(202).json({success:true,message:"Successfully updated"})
-                }).catch(err=>{
-                    console.error(err);
-                })
-            }).catch(err=>{
-                console.error(err);
-            })
+        Order.findOne({where:{order_id:order_id}}).then(async order=>{
+            order.payment_id=payment_id;
+            order.status="successful";
+            await order.save();
+            req.user.isPremiumUser=true;
+            await req.user.save();
+            return res.json({success:true});
+            
         }).catch(err=>{
             console.error(err);
         })

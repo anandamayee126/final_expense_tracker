@@ -51,7 +51,6 @@ function displayExpense(expense){
         .then((res)=>{
             if(res.status == 200)
                 ul.removeChild(li)
-            
         })
         .catch(e => console.log(e))
     }
@@ -59,11 +58,39 @@ function displayExpense(expense){
     ul.appendChild(li);
 }
 
+function parseJwt (token) {
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
+}
+
+function showLeaderboard() {
+    const leaderboard= document.createElement('input');
+    leaderboard.type="button";
+    leaderboard.value="Show Leaderboard";
+    leaderboard.onclick= async()=>{
+        const token=localStorage.getItem('token');
+        const userLeaderboard= await axios.get('http://localhost:4000/premium/showLeaderboard',{header:{"Authorization":token}});
+
+        console.log("userLeaderboard",userLeaderboard);
+
+        var leaderboardElem= document.getElementById('leaderboard');
+        leaderboardElem.innerHTML+='<h1>Leader Board</h1>';
+        userLeaderboard.data.forEach((user) => {
+            leaderboardElem.innerHTML+=`<li> Name--${user.name} Total Expense--${user.total_expense}</li>`
+        })
+    }
+}
+
 const razor= document.getElementById('razor');
-razor.onclick= async function(req,res){
+razor.onclick= async function(e){
     const token= localStorage.getItem('token');
     const response= await axios.get('http://localhost:4000/user/premiumMembership',{headers:{"Authorization":token}});
-    console.log(response);
+    console.log("response",response);
     var options={
         "key":response.data.key_id,
         "order_id":response.data.order.id,
@@ -73,7 +100,14 @@ razor.onclick= async function(req,res){
             payment_id:response.razorpay_payment_id,    
         }, {headers:{"Authorization":token}})
 
+
         alert("You are a premium user now");
+        const decodeToken= parseJwt(token);
+        if(decodeToken.isPremiumUser){
+            document.getElementById('razor').style.visibility="hidden";
+            document.getElementById('p').innerHTML="You are a premium user";
+            showLeaderboard();
+        }
         },
     };
     const rzp1= new Razorpay(options);

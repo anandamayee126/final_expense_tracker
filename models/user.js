@@ -20,8 +20,7 @@ const User= sequelize.define('user',{
         allowNull: false
     },
     isPremiumUser:{
-        type: Sequelize.BOOLEAN,
-        allowNull: false
+        type: Sequelize.BOOLEAN
     }
 })
 
