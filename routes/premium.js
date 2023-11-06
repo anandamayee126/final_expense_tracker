@@ -8,12 +8,13 @@ const sequelize= require('sequelize');
 
 
 premium.get('/showLeaderboard',middleware,async(req,res)=>{
-    var total_expense={};
     const users=await User.findAll({
-        attributes:['id','name']
-    });
-    const expenses= await Expense.findAll({
-        attributes:['userId',[sequelize.fn('sum',sequelize.col('expenses.amount')),'total_expense']]
+        attributes:['id','name',['userId',[sequelize.fn('sum',sequelize.col('expenses.amount')),'total_expense']]],include:[{
+            model:Expense,
+            attributes:[]
+    }],
+    group:[User.id],
+    order:[['total_expense','DESC']]
     });
     var leaderBoard=[];
     // expenses.forEach(expense=>{
@@ -28,6 +29,8 @@ premium.get('/showLeaderboard',middleware,async(req,res)=>{
     users.forEach(user => {
         leaderBoard[user.id].push({name:user.name,total_expense:total_expense[user.id]});
     })
+
+    leaderBoard.sort((a,b) =>b.total_expense-a.total_expense)
     res.status(200).json({success:true});
 
 })
