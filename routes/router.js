@@ -76,6 +76,7 @@ router.post('/dailyExpense',middleware,(req,res)=>{
     }
     
     req.user.createExpense(expense).then(response => {
+        
         console.log(response);
         res.json(response);
     }).catch(err => {console.error(err)});
