@@ -7,6 +7,7 @@ const Expense= require('../models/expense');
 const jwt= require('jsonwebtoken');
 const middleware= require('../middleware/auth');
 const Razorpay= require('razorpay');
+const Sib= require('sib-api-v3-sdk');
 const dot_env= require('dotenv');
 dot_env.config();
 
@@ -76,7 +77,7 @@ router.post('/dailyExpense',middleware,(req,res)=>{
     }
     
     req.user.createExpense(expense).then(response => {
-        
+
         console.log(response);
         res.json(response);
     }).catch(err => {console.error(err)});
@@ -145,5 +146,37 @@ router.post('/updateTransaction',middleware,(req,res)=>{
     }
 })
 
+
+router.post("/forgetPassword",(req,res)=>{
+    const email= req.body.email;
+    const client= Sib.ApiClient.instance;
+    const apikey=client.authentications['api-key']
+    apikey.apikey=process.env.API_KEY;
+
+    const transEmailapi= new Sib.TransactionalEmailsApi();
+
+    const sender={
+        email: "anandamayee.2000@gmail.com",
+        name: "Anandamayee"
+    }
+
+    const receiver=[
+        {
+            email: email
+        }
+    ]
+  transEmailapi.sendTransacEmail({
+    sender,
+    to: receiver,
+    subject:"RESET PASSWORD",
+    textContent: "Please Enter new password"
+  }).then((response) => {
+    console.log(response)
+    res.json({success: true, message:"Mail sent"})
+  }).catch((err) => {
+    console.log(err)
+  })
+
+})
 module.exports = router;
 

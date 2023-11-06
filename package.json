@@ -18,6 +18,7 @@
     "mysql": "^2.18.1",
     "mysql2": "^3.6.2",
     "razorpay": "^2.9.2",
-    "sequelize": "^6.33.0"
+    "sequelize": "^6.33.0",
+    "sib-api-v3-sdk": "^8.5.0"
   }
 }
