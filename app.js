@@ -7,6 +7,7 @@ const Expense= require('./models/expense');
 const sequelize= require('./util/db');
 const Order= require('./models/order');
 const premium= require('./routes/premium');
+const FP= require('./models/forgetPassword');
 
 app.use(cors());
 app.use(express.json());
@@ -16,6 +17,9 @@ Expense.belongsTo(User);
 
 User.hasMany(Order);
 Order.belongsTo(User);
+
+User.hasMany(FP);
+FP.belongsTo(User);
 
 app.use('/user',router);
 app.use('/premium',premium)

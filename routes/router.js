@@ -9,18 +9,19 @@ const middleware= require('../middleware/auth');
 const Razorpay= require('razorpay');
 const Sib= require('sib-api-v3-sdk');
 const dot_env= require('dotenv');
+const FP= require('../models/forgetPassword');
 dot_env.config();
 
 
 let userId=null;
-router.post('/signup',(req,res) => {
+router.post('/signup',async(req,res) => {
     const name= req.body.name;
     const email= req.body.email;
     const password= req.body.password;
     
     
-    const exist= User.findOne({where: {email:email}});
-    if(exist==null){
+    const exist= await User.findOne({where: {email:email}});
+    if(exist!=null){
         res.json({success: false,message:'already exists'});
     }
     else{
@@ -46,18 +47,19 @@ router.post('/login',async(req,res)=>{
 
     const exist_email= await User.findOne({where: {email:email}});
     console.log(exist_email);
-    userId= exist_email.id;
-
+    
     if(exist_email==null){
         res.json({success:false, status:404, message:"User not found .... Please signup first"});
     }
     else{
+        userId= exist_email.id;
+
         bcrypt.compare(password,exist_email.password,(err,result)=>{
             if(err){
                 res.json({success:false,message:"Something went wrong"});
             }
             else if(result===true){
-                return res.json({success:true,message:"User login successfull",token:tokenCreation(userId,req.user.isPremiumUser)});
+                return res.json({success:true,message:"User login successfull",token:tokenCreation(userId,exist_email.isPremiumUser)});
             }
             else{
                 res.status(403).json({success:false,message:"incorrect password"});
@@ -76,8 +78,10 @@ router.post('/dailyExpense',middleware,(req,res)=>{
         amount,description,category
     }
     
-    req.user.createExpense(expense).then(response => {
-
+    req.user.createExpense(expense).then(async response => {
+        const  total_expense= Number(req.user.totalExpense)+Number(amount);
+        req.user.totalExpense=total_expense;
+        await req.user.save();
         console.log(response);
         res.json(response);
     }).catch(err => {console.error(err)});
@@ -134,8 +138,10 @@ router.post('/updateTransaction',middleware,(req,res)=>{
             order.status="successful";
             await order.save();
             req.user.isPremiumUser=true;
+            const token= tokenCreation(userId,true);
             await req.user.save();
-            return res.json({success:true});
+
+            return res.json({success:true,token});
             
         }).catch(err=>{
             console.error(err);
@@ -147,11 +153,11 @@ router.post('/updateTransaction',middleware,(req,res)=>{
 })
 
 
-router.post("/forgetPassword",(req,res)=>{
+router.post("/forgetPassword",middleware,(req,res)=>{
     const email= req.body.email;
     const client= Sib.ApiClient.instance;
-    const apikey=client.authentications['api-key']
-    apikey.apikey=process.env.API_KEY;
+    const apiKey=client.authentications['api-key']
+    apiKey.apiKey=process.env.API_KEY;
 
     const transEmailapi= new Sib.TransactionalEmailsApi();
 
@@ -159,7 +165,6 @@ router.post("/forgetPassword",(req,res)=>{
         email: "anandamayee.2000@gmail.com",
         name: "Anandamayee"
     }
-
     const receiver=[
         {
             email: email
@@ -178,5 +183,7 @@ router.post("/forgetPassword",(req,res)=>{
   })
 
 })
+
+
 module.exports = router;
 
