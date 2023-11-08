@@ -58,15 +58,7 @@ function displayExpense(expense){
     ul.appendChild(li);
 }
 
-// function parseJwt (token) {
-//     var base64Url = token.split('.')[1];
-//     var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-//     var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-//         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-//     }).join(''));
 
-//     return JSON.parse(jsonPayload);
-// }
 
 function showLeaderboard() {
     const leaderboard= document.createElement('input');
@@ -105,8 +97,9 @@ razor.onclick= async function(e){
 
         console.log(result);
         alert("You are a premium user now");
-        const decodeToken= parseJwt(token);
-        if(result.data.success) {
+        localStorage.setItem('token',result.data.token);
+        const isPremiumUser=true;
+        if(isPremiumUser) {
             console.log("hiiii");
             document.getElementById('razor').style.visibility="hidden";
             document.getElementById('p').innerHTML="You are a premium user";

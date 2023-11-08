@@ -29,9 +29,7 @@ premium.get('/showLeaderboard',middleware,async(req,res)=>{
     users.forEach(user => {
         leaderBoard[user.id].push({name:user.name,total_expense:total_expense[user.id]});
     })
-
-    leaderBoard.sort((a,b) =>b.total_expense-a.total_expense)
-    res.status(200).json({success:true});
+    
 
 })
 module.exports= premium;

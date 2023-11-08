@@ -8,6 +8,8 @@ const jwt= require('jsonwebtoken');
 const middleware= require('../middleware/auth');
 const Razorpay= require('razorpay');
 const Sib= require('sib-api-v3-sdk');
+const sequelize= require('../util/db');
+const t= sequelize.transaction();
 const dot_env= require('dotenv');
 const FP= require('../models/forgetPassword');
 dot_env.config();
@@ -74,17 +76,24 @@ router.post('/dailyExpense',middleware,(req,res)=>{
     const description = req.body.description;
     const category= req.body.category;
 
+
     const expense= {
         amount,description,category
     }
     
-    req.user.createExpense(expense).then(async response => {
+    req.user.createExpense(expense,{transaction:t}).then(async response => {
+
         const  total_expense= Number(req.user.totalExpense)+Number(amount);
         req.user.totalExpense=total_expense;
         await req.user.save();
+        t.commit();
         console.log(response);
         res.json(response);
-    }).catch(err => {console.error(err)});
+    }).catch(
+        err => {
+            t.rollback();
+            console.error(err)
+        });
 })
 
 router.get('/getExpense',middleware,(req,res) => {
@@ -129,8 +138,19 @@ router.get('/premiumMembership',middleware,async(req, res) => {
     }
 })
 
+// function parseJwt (token) {
+//         var base64Url = token.split('.')[1];
+//         var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+//         var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+//             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+//         }).join(''));
+    
+//         return JSON.parse(jsonPayload);
+//     }
+
 router.post('/updateTransaction',middleware,(req,res)=>{
     try{
+        
         console.log("req.body",req.body);
         const {payment_id,order_id} = req.body;
         Order.findOne({where:{order_id:order_id}}).then(async order=>{
@@ -139,9 +159,10 @@ router.post('/updateTransaction',middleware,(req,res)=>{
             await order.save();
             req.user.isPremiumUser=true;
             const token= tokenCreation(userId,true);
+           // const decodedToken= parseJwt(token);
             await req.user.save();
 
-            return res.json({success:true,token});
+            return res.json({success:true,token:tokenCreation(userId,true),isPremiumUser:true});
             
         }).catch(err=>{
             console.error(err);
@@ -169,7 +190,7 @@ router.post("/forgetPassword",middleware,(req,res)=>{
         {
             email: email
         }
-    ]
+    ] 
   transEmailapi.sendTransacEmail({
     sender,
     to: receiver,
@@ -181,6 +202,15 @@ router.post("/forgetPassword",middleware,(req,res)=>{
   }).catch((err) => {
     console.log(err)
   })
+
+})
+
+router.post('/resetPassword',middleware,(req,res) => {
+    const id = req.params.id;
+    FP.findOne({where: {id: id}}).then(forgetPassword=>{
+
+    })
+
 
 })
 
