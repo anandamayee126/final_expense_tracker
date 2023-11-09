@@ -8,8 +8,7 @@ const jwt= require('jsonwebtoken');
 const middleware= require('../middleware/auth');
 const Razorpay= require('razorpay');
 const Sib= require('sib-api-v3-sdk');
-const sequelize= require('../util/db');
-const t= sequelize.transaction();
+const sequelize= require('../util/db')
 const dot_env= require('dotenv');
 const FP= require('../models/forgetPassword');
 dot_env.config();
@@ -71,7 +70,7 @@ router.post('/login',async(req,res)=>{
 })
 
 
-router.post('/dailyExpense',middleware,(req,res)=>{
+router.post('/dailyExpense',middleware,async(req,res)=>{
     const amount= req.body.amount;
     const description = req.body.description;
     const category= req.body.category;
@@ -80,31 +79,40 @@ router.post('/dailyExpense',middleware,(req,res)=>{
     const expense= {
         amount,description,category
     }
-    
+    const t= await sequelize.transaction();  
     req.user.createExpense(expense,{transaction:t}).then(async response => {
 
         const  total_expense= Number(req.user.totalExpense)+Number(amount);
         req.user.totalExpense=total_expense;
         await req.user.save();
-        t.commit();
+       await t.commit();
         console.log(response);
         res.json(response);
-    }).catch(
-        err => {
-            t.rollback();
+    }).catch(err => {
+           t.rollback();
             console.error(err)
         });
 })
 
 router.get('/getExpense',middleware,(req,res) => {
-    
-    req.user.getExpenses().then(response=>res.json(response)).catch(err => { throw new Error(err)})
+    console.log("user")
+    console.log(req.user)
+    req.user.getExpenses().then(response=>{ return res.json({response 
+        , isPremiumUser : req.user.isPremiumUser}
+        )}).catch(err => {
+        console.log(err)
+    })
 })
 
 
-router.delete('/delete/:id', (req,res) => {
-   
-        Expense.destroy({where:{id:req.params.id}}).then((response) => res.json({success: true, message:"deleted ->  ",response})).catch(err => { throw new Error(err)})
+router.delete('/delete/:id',middleware,async(req,res) => {
+    const expense_amount= await Expense.findOne({where:{id:req.params.id}});
+    const user_totalExpense= await User.findOne({where:{id:req.params.id}})
+    user_totalExpense.totalExpense= user_totalExpense.totalExpense-expense_amount.amount; 
+    Expense.destroy({where:{id:req.params.id}})
+    .then((response) =>{
+        res.json({success: true, message:"deleted ->  ",response})})
+    .catch(err => { throw new Error(err)})
  
 })
 
@@ -158,11 +166,11 @@ router.post('/updateTransaction',middleware,(req,res)=>{
             order.status="successful";
             await order.save();
             req.user.isPremiumUser=true;
-            const token= tokenCreation(userId,true);
+            const token= tokenCreation(req.user.id,true);
            // const decodedToken= parseJwt(token);
             await req.user.save();
 
-            return res.json({success:true,token:tokenCreation(userId,true),isPremiumUser:true});
+            return res.json({success:true,token,isPremiumUser:true});
             
         }).catch(err=>{
             console.error(err);

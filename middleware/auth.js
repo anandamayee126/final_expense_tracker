@@ -10,10 +10,11 @@ const authenticate= (req, res, next) => {
             console.log(JSON.stringify(user));
             req.user = user;
             next();
-        }).catch(err => { throw new Error(err)
+        }).catch(err => { console.log(err)
         })
     }
     catch(err) {
+        console.log(err)
         res.status(403).json({success: false});
     }
 }

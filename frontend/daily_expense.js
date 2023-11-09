@@ -4,7 +4,12 @@ window.addEventListener('load',async (req,res) => {   ///////NOT WORKING
     const token= localStorage.getItem('token');
     const all_expense= await axios.get('http://localhost:4000/user/getExpense',{headers: {'Authorization': token}});
     console.log("all_expenses",all_expense);
-    all_expense.data.forEach(element => {
+    if(all_expense.data.isPremiumUser){
+        document.getElementById('showleaderboard').classList.remove('hide')
+        document.getElementById('razor').classList.add('hide')
+        document.getElementById('reportbtn').classList.remove('hide')
+    }
+    all_expense.data.response.forEach(element => {
         displayExpense(element);
         
     });
@@ -59,26 +64,22 @@ function displayExpense(expense){
 }
 
 
-
-function showLeaderboard() {
-    const leaderboard= document.createElement('input');
-    leaderboard.type="button";
-    leaderboard.value="Show Leaderboard";
-    leaderboard.onclick= async()=>{
+document.getElementById('leaderboardbtn').addEventListener('click' , showLeaderboard)
+    async function showLeaderboard(e){
+        e.preventDefault()
         const token=localStorage.getItem('token');
-        const userLeaderboard= await axios.get('http://localhost:4000/premium/showLeaderboard',{header:{"Authorization":token}});
-
-
+        console.log(token)
+        const userLeaderboard= await axios.get('http://localhost:4000/premium/showLeaderboard',{headers:{"Authorization":token}});
         console.log("userLeaderboard",userLeaderboard);
-
-        var leaderboardElem= document.getElementById('leaderboard');
-        leaderboardElem.append(leaderboard);
-        leaderboardElem.innerHTML+='<h1>Leader Board</h1>';
+        var leaderboard_UL= document.getElementById('leaderboard');
+        leaderboard_UL.innerHTML+='<h1>Leader Board</h1>';
         userLeaderboard.data.forEach((user) => {
-            leaderboardElem.innerHTML+=`<li> Name--${user.name} Total Expense--${user.total_expense}</li>`
+            const leaderboard_LI= document.createElement('li');
+            leaderboard_LI.innerText=`Name--${user.name} Total Expense--${user.total_expense}`
+            leaderboard_UL.appendChild(leaderboard_LI);
         })
     }
-}
+
 
 const razor= document.getElementById('razor');
 razor.onclick= async function(e){
@@ -101,11 +102,11 @@ razor.onclick= async function(e){
         const isPremiumUser=true;
         if(isPremiumUser) {
             console.log("hiiii");
-            document.getElementById('razor').style.visibility="hidden";
-            document.getElementById('p').innerHTML="You are a premium user";
+            document.getElementById('showleaderboard').classList.remove('hide')
+            document.getElementById('razor').classList.add('hide')
             showLeaderboard();
         }
-        },
+        },// ispremium : true / false
     };
     const rzp1= new Razorpay(options);
     rzp1.open();
@@ -115,4 +116,28 @@ razor.onclick= async function(e){
         console.log(response);
         alert("Something went wrong");
     }); 
+}
+
+const show_Report=document.getElementById('reportbtn');
+show_Report.addEventListener('click',showReport);
+
+async function showReport(){
+    const table= document.createElement('table');
+    const row= document.createElement('tr');
+    const column_date= document.createElement('td');
+    const column_name= document.createElement('td');
+    const column_expense= document.createElement('td');
+    table.textContent="Report";
+    column_date.textContent="date";
+    column_name.textContent="name";
+    column_expense.textContent="expense";
+    row.appendChild(column_date);
+    row.appendChild(column_name);
+    row.appendChild(column_expense);
+    const token=localStorage.getItem('token');
+    const report= await axios.get('http://localhost:4000/premium/report',{headers:{'Authorization':token}});
+
+
+
+
 }

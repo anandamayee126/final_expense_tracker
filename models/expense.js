@@ -7,6 +7,10 @@ const Expense= sequelize.define('expense',{
         autoIncrement: true,
         primaryKey: true
     },
+    date:{
+        type: Sequelize.DATE,
+        allowNull: false
+    },
     amount:{
         type: Sequelize.INTEGER,
         allowNull: false,
