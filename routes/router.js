@@ -7,8 +7,9 @@ const Expense= require('../models/expense');
 const jwt= require('jsonwebtoken');
 const middleware= require('../middleware/auth');
 const Razorpay= require('razorpay');
-const Sib= require('sib-api-v3-sdk');
+var Brevo = require('@getbrevo/brevo');
 const sequelize= require('../util/db')
+// const Sbi= require('sib-api-v3-sdk');
 const dot_env= require('dotenv');
 const FP= require('../models/forgetPassword');
 dot_env.config();
@@ -71,25 +72,26 @@ router.post('/login',async(req,res)=>{
 
 
 router.post('/dailyExpense',middleware,async(req,res)=>{
+    const date=req.body.date;
     const amount= req.body.amount;
     const description = req.body.description;
     const category= req.body.category;
 
 
     const expense= {
-        amount,description,category
+        date,amount,description,category
     }
-    const t= await sequelize.transaction();  
-    req.user.createExpense(expense,{transaction:t}).then(async response => {
+    // const t= await sequelize.transaction();  
+    req.user.createExpense(expense).then(async response => {
 
         const  total_expense= Number(req.user.totalExpense)+Number(amount);
         req.user.totalExpense=total_expense;
         await req.user.save();
-       await t.commit();
+    //    await t.commit();
         console.log(response);
         res.json(response);
     }).catch(err => {
-           t.rollback();
+        //    t.rollback();
             console.error(err)
         });
 })
@@ -106,14 +108,13 @@ router.get('/getExpense',middleware,(req,res) => {
 
 
 router.delete('/delete/:id',middleware,async(req,res) => {
-    const expense_amount= await Expense.findOne({where:{id:req.params.id}});
-    const user_totalExpense= await User.findOne({where:{id:req.params.id}})
+    const expense_amount= await Expense.findAll({where:{id:req.params.id}});
+    const user_totalExpense= await User.findAll({where:{id:req.params.id}})
     user_totalExpense.totalExpense= user_totalExpense.totalExpense-expense_amount.amount; 
     Expense.destroy({where:{id:req.params.id}})
     .then((response) =>{
         res.json({success: true, message:"deleted ->  ",response})})
-    .catch(err => { throw new Error(err)})
- 
+    .catch(err => { console.log(err) });
 })
 
 router.get('/premiumMembership',middleware,async(req, res) => {
@@ -182,42 +183,87 @@ router.post('/updateTransaction',middleware,(req,res)=>{
 })
 
 
-router.post("/forgetPassword",middleware,(req,res)=>{
-    const email= req.body.email;
-    const client= Sib.ApiClient.instance;
-    const apiKey=client.authentications['api-key']
-    apiKey.apiKey=process.env.API_KEY;
+router.post('/forgetPassword',async(req,res)=>{
+    try{
+        const rec_email = req.body.email;
+        console.log(rec_email);
+        const user = await User.findOne({where : {email : rec_email}})
+        console.log(user)
+        console.log(user== null)
+        if(user === null)
+             return res.status(404).json({success : false , msg :"Email not found"})
 
-    const transEmailapi= new Sib.TransactionalEmailsApi();
+        var defaultClient = Brevo.ApiClient.instance;
+        var apiKey = defaultClient.authentications['api-key'];
+        apiKey.apiKey = process.env.API_KEY
 
-    const sender={
-        email: "anandamayee.2000@gmail.com",
-        name: "Anandamayee"
-    }
-    const receiver=[
-        {
-            email: email
+        var apiInstance = new Brevo.TransactionalEmailsApi();
+
+        const sender = { "email": "anandamayee.2000@gmail.com"}
+
+        const reciever = [{
+            "email":rec_email
+        }]
+        const link = await user.createFp();
+        console.log("link",link);
+        const response = await apiInstance.sendTransacEmail({
+            sender,
+            to : reciever,
+            subject : 'testing',
+            textContent: 'hello , this is a text content',
+            htmlContent: '<p>Click the link to reset your password</p>'+
+            `<a href="http://127.0.0.1:5500/frontend/Password/reset_password.html?reset=${link.id}">click here</a>`
+        })
+            await FP.update({isActive:true},{where:{id: link.id}});
+            return res.json({success : true , response})
+
+        }catch(e){
+            console.log(e)
+            return res.status(500).json({success : false ,msg :"Internal server error"})
         }
-    ] 
-  transEmailapi.sendTransacEmail({
-    sender,
-    to: receiver,
-    subject:"RESET PASSWORD",
-    textContent: "Please Enter new password"
-  }).then((response) => {
-    console.log(response)
-    res.json({success: true, message:"Mail sent"})
-  }).catch((err) => {
-    console.log(err)
-  })
+})
+
+router.post('/update-password/:resetId',middleware,async(req,res) => {
+    try{
+        const id = req.params.resetId;
+        const newPassword =req.body.newPassword;
+    
+        const resetUser= await FP.findByPk(id);
+        const user_id= resetUser.userId;
+        console.log("user_id",user_id);
+        if(!(resetUser.isActive)) {
+            return res.json({success : false ,msg :"Link has expired... Please try again"});
+        }
+        const user= resetUser.getUser();
+        const hash=await bcrypt.hash(newPassword,10);
+
+        await User.update({password : hash},{where:{id:user_id}});
+        await FP.update({isActive : false},{where:{id:id}});
+
+
+        return res.status(200).json({success:true,message:"Password updated successfully"});
+
+    }
+    catch (err) {
+        console.log(err);
+        return res.status(500).json({success: false, message: "Internal Server error"});
+    }
+
 
 })
 
-router.post('/resetPassword',middleware,(req,res) => {
-    const id = req.params.id;
-    FP.findOne({where: {id: id}}).then(forgetPassword=>{
+router.get('/check-password-link/:resetId',async(req, res) => {
+    try{
+        const id=req.params.resetId;
+        const find=await FP.findOne({where:{id:id}});
+        return res.json({isActive:find.isActive});
+    }
+    catch(err) {
+        console.log(err);
+        return res.status(500).json({success:false, message:"Internal server error!!"});
 
-    })
+    }
+    
 
 
 })

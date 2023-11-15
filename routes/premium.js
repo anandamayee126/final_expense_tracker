@@ -37,4 +37,9 @@ premium.get('/checkPremium' , middleware , async(req,res)=>{
 
     }
 })
+
+premium.get('/report',middleware, async(req, res) => {
+    
+  
+})
 module.exports= premium;

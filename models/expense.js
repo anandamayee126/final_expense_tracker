@@ -9,7 +9,7 @@ const Expense= sequelize.define('expense',{
     },
     date:{
         type: Sequelize.DATE,
-        allowNull: false
+        allowNull: false,
     },
     amount:{
         type: Sequelize.INTEGER,

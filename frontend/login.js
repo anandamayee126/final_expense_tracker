@@ -17,7 +17,13 @@ async function checkUser(e){
     console.log("login",login);
     if(login.data.success===true){
        localStorage.setItem('token',login.data.token);
-        window.location="daily_expense.html";
+        window.location="/frontend/Expense/daily_expense.html";
+    }
+    else
+    {
+        const p = document.getElementById('Incorrect_password');
+        p.classList.remove('hide');
+        // window.location="login.html";
     }
     
     

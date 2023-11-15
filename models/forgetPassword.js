@@ -9,7 +9,7 @@ const FP= sequelize.define('fp',{
     },
     isActive:{
         type: Sequelize.BOOLEAN,
-        default: false
+        defaultValue: true
     }
 })
 
