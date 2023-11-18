@@ -8,6 +8,9 @@ window.addEventListener('load',async (req,res) => {   ///////NOT WORKING
         document.getElementById('showleaderboard').classList.remove('hide')
         document.getElementById('razor').classList.add('hide')
         // document.getElementById('reportbtn').classList.remove('hide')
+
+
+
     }
     all_expense.data.response.forEach(element => {
         displayExpense(element);
@@ -125,7 +128,6 @@ const show_Report=document.getElementById('reportbtn');
 show_Report.addEventListener('click',showReport);
 
 async function showReport(e){
-
     e.preventDefault();
     const token=localStorage.getItem('token');
     const report= await axios.get('http://localhost:4000/premium/report',{headers:{'Authorization':token}});
@@ -145,6 +147,15 @@ async function showReport(e){
         row.appendChild(column_expense);
         table.appendChild(row);
     })
+
+    var page=1;
+    axios.get(`http://localhost:4000/premium/pagination/${page}`,{headers:{'Authorization':token}})
+    .then((res)=>{
+        listOfExpense(res.data.expenses);
+        showPagination(res.data);
+    })
+    console.log("pagination",pagination);
+
 
    
     
