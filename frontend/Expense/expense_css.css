@@ -1,0 +1,30 @@
+div{
+    align-items: center;
+    margin-left: 250px;
+    margin-top: 30px;
+    border: 2px solid black;
+    padding: 100px 100px 100px 100px;
+    margin-right: 150px;
+    border-radius: 20px;
+    box-shadow: 0 0 100px;
+}
+
+/* #daily{
+    padding: 33px 33px 33px 33px;
+    background-color: rgb(241, 91, 91);
+    border-radius: 15px;
+    margin-left: 70px;
+
+} */
+#weekly{
+    padding: 33px 33px 33px 33px;
+    background-color: rgb(75, 121, 221);
+    border-radius: 15px;
+
+}
+#monthly{
+    padding: 33px 33px 33px 33px;
+    background-color: rgb(116, 240, 99);
+    border-radius: 15px;
+
+}

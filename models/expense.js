@@ -8,8 +8,9 @@ const Expense= sequelize.define('expense',{
         primaryKey: true
     },
     date:{
-        type: Sequelize.DATE,
+        type: Sequelize.DATEONLY,
         allowNull: false,
+
     },
     amount:{
         type: Sequelize.INTEGER,

@@ -1,5 +1,5 @@
 const ul= document.getElementById('ul');
-
+var date_val=null;
 window.addEventListener('load',async (req,res) => {   ///////NOT WORKING
     const token= localStorage.getItem('token');
     const all_expense= await axios.get('http://localhost:4000/user/getExpense',{headers: {'Authorization': token}});
@@ -27,6 +27,7 @@ function addDailyExpense(e){
     e.preventDefault();
     console.log("inside addDailyExpense");
     const date= e.target.date.value;
+    date_val= date;
     const amount=e.target.amount.value;
     const description= e.target.description.value;
     const category= e.target.category.value;
@@ -46,10 +47,14 @@ function displayExpense(expense){
     const span1= document.createElement('span');
     const span2= document.createElement('span');
     const span3= document.createElement('span');
+    const span4= document.createElement('span');
+
+    span4.textContent = expense.date+"    ";
     span1.textContent = expense.amount+"    ";
     span2.textContent = expense.description+"    ";
     span3.textContent = expense.category+"       ";
 
+    li.appendChild(span4);
     li.appendChild(span1);
     li.appendChild(span2);
     li.appendChild(span3);
@@ -68,6 +73,8 @@ function displayExpense(expense){
     }
     li.appendChild(button);
     ul.appendChild(li);
+
+    date_val= expense.date;
 }
 
 
@@ -124,42 +131,27 @@ razor.onclick= async function(e){
     }); 
 }
 
-const show_Report=document.getElementById('reportbtn');
-show_Report.addEventListener('click',showReport);
 
-async function showReport(e){
+const dwm= document.getElementById('report');
+dwm.addEventListener('click',showButtons);
+function showButtons(e){
     e.preventDefault();
-    const token=localStorage.getItem('token');
-    const report= await axios.get('http://localhost:4000/premium/report',{headers:{'Authorization':token}});
-    console.log(report);
-    const table= document.createElement('table');
-    table.textContent="Report";
-    report.data.forEach((user)=>{
-        const row= document.createElement('tr');
-        const column_date= document.createElement('td');
-        const column_name= document.createElement('td');
-        const column_expense= document.createElement('td');
-        column_date.textContent=user.date;
-        column_name.textContent=user.name;
-        column_expense.textContent=user.expense;
-        row.appendChild(column_date);
-        row.appendChild(column_name);
-        row.appendChild(column_expense);
-        table.appendChild(row);
-    })
-
-    var page=1;
-    axios.get(`http://localhost:4000/premium/pagination/${page}`,{headers:{'Authorization':token}})
-    .then((res)=>{
-        listOfExpense(res.data.expenses);
-        showPagination(res.data);
-    })
-    console.log("pagination",pagination);
-
-
-   
-    
-   
-    
-    
+    window.location="report_expense.html";
 }
+
+
+// const daily= document.getElementById('day');
+// daily.addEventListener('click',reportDaily);
+// async function reportDaily(e){
+//     e.preventDefault();
+//     // const date= e.target.date.value;
+//     const token= localStorage.getItem('token');
+//     const report = await axios.post('http://localhost:4000/premium/getdate',{date:date_val},{headers:{"Authorization":token}});
+//     console.log("daily_report",report);
+// }
+
+
+
+
+
+
