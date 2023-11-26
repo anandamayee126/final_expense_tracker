@@ -1,15 +1,15 @@
-const weekly_form= document.getElementById('weekly_form');
-weekly_form.addEventListener('submit',showWeekly);
+const daily_form= document.getElementById('daily_form');
+daily_form.addEventListener('submit',showDaily);
 
-async function showWeekly(e){
+async function showDaily(e){
     e.preventDefault();
     const date= e.target.date.value;
     console.log(date);
     const token= localStorage.getItem('token');
-    const result= await axios.post('http://localhost:4000/premium/getweekly',{date},{headers:{"Authorization":token}});
+    const result= await axios.post('http://localhost:4000/premium/getdaily',{date},{headers:{"Authorization":token}});
     console.log("result_front", result);
 
-    const table= document.getElementById('weekly_table');
+    const table= document.getElementById('table');
     const td_date= document.createElement('td');
     const td_amount= document.createElement('td');
     const td_description= document.createElement('td');

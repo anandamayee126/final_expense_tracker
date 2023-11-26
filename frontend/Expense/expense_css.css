@@ -9,13 +9,13 @@ div{
     box-shadow: 0 0 100px;
 }
 
-/* #daily{
+#daily{
     padding: 33px 33px 33px 33px;
     background-color: rgb(241, 91, 91);
     border-radius: 15px;
     margin-left: 70px;
 
-} */
+}
 #weekly{
     padding: 33px 33px 33px 33px;
     background-color: rgb(75, 121, 221);
@@ -27,4 +27,9 @@ div{
     background-color: rgb(116, 240, 99);
     border-radius: 15px;
 
+}
+
+.td{
+    margin-right: 50px;
+    padding-left: 50px;
 }

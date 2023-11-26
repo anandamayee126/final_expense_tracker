@@ -1,24 +1,29 @@
 const weekly_form= document.getElementById('monthly_form');
 weekly_form.addEventListener('submit',showMonthly);
+const token= localStorage.getItem('token');
 
 async function showMonthly(e){
     e.preventDefault();
     const date= e.target.date.value;
     console.log(date);
-    const token= localStorage.getItem('token');
-    const result= await axios.post('http://localhost:4000/premium/getmonthly',{date},{headers:{"Authorization":token}});
+    
+    const result= await axios.post('http://localhost:4000/premium/getMonthly',{date},{headers:{"Authorization":token}});
     console.log("result_front", result);
     showReport(result);
 }
+
 function showReport(result){
-    const table= document.createElement('table');
+    const table= document.getElementById('table');
     const td_date= document.createElement('td');
     const td_amount= document.createElement('td');
     const td_description= document.createElement('td');
     const tr= document.createElement('tr');
     td_date.textContent= "Date";
+    td_date.classList.add('td');
     td_amount.textContent= "Amount";
+    td_amount.classList.add('td');
     td_description.textContent= "Description";
+    td_description.classList.add('td');
     tr.appendChild(td_date);
     tr.appendChild(td_amount);
     tr.appendChild(td_description);
@@ -36,4 +41,19 @@ function showReport(result){
         tr_value.appendChild(td_description_value);
         table.appendChild(tr_value);
     })
+    const download_btn= document.createElement('button');
+    download_btn.textContent = 'Download Report';
+    download_btn.name="download";
+    
+    // const token= localStorage.getItem('token');
+    download_btn.onclick=()=>{
+        axios.post('http://localhost:4000/premium/downloadExpense',{data:result.data},{headers: {'Authorization': token}})
+        .then((response)=>{
+            console.log("response",response);
+        })
+        .catch((error)=>{
+            console.log(error);
+        })
+    }
+    table.appendChild(download_btn);
 }

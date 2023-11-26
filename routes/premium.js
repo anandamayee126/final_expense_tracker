@@ -7,7 +7,7 @@ const sequelize= require('sequelize');
 const AWS= require('aws-sdk');
 const dot_env= require('dotenv');
 dot_env.config();
-
+const {Op} = require('sequelize')
 
 
 
@@ -76,22 +76,25 @@ premium.get('/checkPremium' , middleware , async(req,res)=>{
     })
 }
 
-premium.get('/downloadExpense',middleware, async(req, res) => {
+premium.post('/downloadExpense',middleware, async(req, res) => {
     try{
-        const expenses= req.user.getExpenses();
+        console.log("hiiiiiiiiiiii");
+        const expenses=await req.body.data;
+        const name= await req.user.name;
+        const random= Math.random();
         console.log("expenses are: ",expenses);
         const stringifiedExpenses= JSON.stringify(expenses);
-        conole.log("stringifiedExpenses ",stringifiedExpenses);
-        const fileName= "Expense.txt";
+        console.log("stringifiedExpenses ",stringifiedExpenses);
+        const fileName= `${name}_${random}.txt`;
         const fileUrl= await uploadToS3(stringifiedExpenses,fileName);
-        res.status(200).json({fileUrl , success : true});
+        return res.status(200).json({fileUrl , success : true});
     }
     catch(err){
-        res.status(500).json({success:false,message:err.message});
+        return res.status(500).json({success:false,message:err.message});
     }
 })
 
-    premium.post('/getdate', middleware, async (req, res) => {
+    premium.post('/getdaily', middleware, async (req, res) => {
         try {
             if (req.user.isPremiumUser) {
                 console.log("date: ",req.body.date)
@@ -119,8 +122,8 @@ premium.get('/downloadExpense',middleware, async(req, res) => {
                 const result = await req.user.getExpenses({
                     where: {
                         date: {
-                            [sequelize.gte]: startDate,
-                            [sequelize.lte]:  endDate
+                            [Op.gte]: startDate,
+                            [Op.lte]:  endDate
                         }
                     }
                 })
@@ -137,14 +140,14 @@ premium.get('/downloadExpense',middleware, async(req, res) => {
     premium.post('/getMonthly', middleware, async (req, res) => {
         try {
             if (req.user.isPremiumUser) {
-                const month = req.body.month;
+                const month = req.body.date;
                 const startDate = new Date(month);
                 const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 1);
                 const result = await req.user.getExpenses({
                     where: {
                         date: {
-                            [sequelize.gte]: startDate,
-                            [sequelize.lt]: endDate
+                            [Op.gte]: startDate,
+                            [Op.lt]: endDate
                         }
                     }
                 })
