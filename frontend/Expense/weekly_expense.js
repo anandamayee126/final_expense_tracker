@@ -7,7 +7,7 @@ async function showWeekly(e){
     console.log(date);
     const token= localStorage.getItem('token');
     const result= await axios.post('http://localhost:4000/premium/getweekly',{date},{headers:{"Authorization":token}});
-    console.log("result_front", result);
+    // console.log("result_front", result);
 
     const table= document.getElementById('weekly_table');
     const td_date= document.createElement('td');
