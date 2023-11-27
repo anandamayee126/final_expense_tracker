@@ -8,6 +8,7 @@ const sequelize= require('./util/db');
 const Order= require('./models/order');
 const premium= require('./routes/premium');
 const FP= require('./models/forgetPassword');
+const helmet= require('helmet');
 
 app.use(cors());
 app.use(express.json());
@@ -33,6 +34,7 @@ app.use('/premium',premium)
 // }).catch((err) => {
 //     console.log(err);
 // })
+app.use(helmet());
 
 sequelize.sync().then(()=>{
     app.listen(4000);
