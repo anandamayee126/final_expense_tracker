@@ -9,6 +9,9 @@ const Order= require('./models/order');
 const premium= require('./routes/premium');
 const FP= require('./models/forgetPassword');
 const helmet= require('helmet');
+const morgan= require('morgan');
+const fs= require('fs');
+const path = require('path');
 
 app.use(cors());
 app.use(express.json());
@@ -25,6 +28,7 @@ FP.belongsTo(User);
 app.use('/user',router);
 app.use('/premium',premium)
 
+const accessLogStream= fs.createWriteStream(path.join(__dirname,'access.log'),{flags:'a'});
 // User.create({
 //     name:'Anandamayee',
 //     email:'anandamayee@gmail.com',
@@ -35,6 +39,7 @@ app.use('/premium',premium)
 //     console.log(err);
 // })
 app.use(helmet());
+app.use(morgan('combined',{stream: accessLogStream}));
 
 sequelize.sync().then(()=>{
     app.listen(4000);
