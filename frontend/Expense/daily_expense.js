@@ -140,16 +140,6 @@ function showButtons(e){
 }
 
 
-// const daily= document.getElementById('day');
-// daily.addEventListener('click',reportDaily);
-// async function reportDaily(e){
-//     e.preventDefault();
-//     // const date= e.target.date.value;
-//     const token= localStorage.getItem('token');
-//     const report = await axios.post('http://localhost:4000/premium/getdate',{date:date_val},{headers:{"Authorization":token}});
-//     console.log("daily_report",report);
-// }
-
 
 
 

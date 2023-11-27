@@ -44,7 +44,7 @@ async function showWeekly(e){
         axios.post('http://localhost:4000/premium/downloadExpense',{data:result.data},{headers: {'Authorization': token}})
         .then((response)=>{
             console.log("response",response);
-            console.log("link", response.Object.data.fileUrl);
+            console.log("link", response.data.fileUrl);
         })
         .catch((error)=>{
             console.log(error);
