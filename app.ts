@@ -43,6 +43,6 @@ app.use(morgan('combined',{stream: accessLogStream}));
 
 sequelize.sync().then(()=>{
     app.listen(4000);
-}).catch(err => {
+}).catch((err:any) => {
     console.error(err)
 })

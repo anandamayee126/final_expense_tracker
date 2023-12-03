@@ -63,7 +63,7 @@ router.post('/login',async(req,res)=>{
     else{
         userId= exist_email.id;
 
-        bcrypt.compare(password,exist_email.password,(err,result)=>{
+        bcrypt.compare(password,exist_email.password,(err:any,result:any)=>{
             if(err){
                 res.json({success:false,message:"Something went wrong"});
             }
@@ -78,7 +78,7 @@ router.post('/login',async(req,res)=>{
 })
 
 
-router.post('/dailyExpense',middleware,async(req,res)=>{
+router.post('/dailyExpense',middleware,async(req:any,res:any)=>{
     const date=req.body.date;
     const amount= req.body.amount;
     const description = req.body.description;
@@ -103,7 +103,7 @@ router.post('/dailyExpense',middleware,async(req,res)=>{
         });
 })
 
-router.get('/getExpense',middleware,(req,res) => {
+router.get('/getExpense',middleware,(req:any,res:any) => {
     console.log("user")
     console.log(req.user)
     req.user.getExpenses().then((response: any)=>{ return res.json({response 
@@ -114,7 +114,7 @@ router.get('/getExpense',middleware,(req,res) => {
 })
 
 
-router.delete('/delete/:id',middleware,async(req,res) => {
+router.delete('/delete/:id',middleware,async(req:any,res:any) => {
     const expense_amount= await Expense.findAll({where:{id:req.params.id}});
     const user_totalExpense= await User.findAll({where:{id:req.params.id}})
     user_totalExpense.totalExpense= user_totalExpense.totalExpense-expense_amount.amount; 
@@ -124,7 +124,7 @@ router.delete('/delete/:id',middleware,async(req,res) => {
     .catch((err: string) => { console.log(err) });
 })
 
-router.get('/premiumMembership',middleware,async(req, res) => {
+router.get('/premiumMembership',middleware,async(req:any, res:any) => {
     try{
         var rzp= new Razorpay({
             key_id: process.env.RAZORPAY_KEY_ID,
@@ -164,7 +164,7 @@ router.get('/premiumMembership',middleware,async(req, res) => {
 //         return JSON.parse(jsonPayload);
 //     }
 
-router.post('/updateTransaction',middleware,(req,res)=>{
+router.post('/updateTransaction',middleware,(req:any,res:any)=>{
     try{
         
         console.log("req.body",req.body);
@@ -190,7 +190,7 @@ router.post('/updateTransaction',middleware,(req,res)=>{
 })
 
 
-router.post('/forgetPassword',async(req,res)=>{
+router.post('/forgetPassword',async(req:any,res:any)=>{
     try{
         const rec_email = req.body.email;
         console.log(rec_email);
@@ -230,7 +230,7 @@ router.post('/forgetPassword',async(req,res)=>{
         }
 })
 
-router.post('/update-password/:resetId',middleware,async(req,res) => {
+router.post('/update-password/:resetId',middleware,async(req:any,res:any) => {
     try{
         const id = req.params.resetId;
         const newPassword =req.body.newPassword;
@@ -259,7 +259,7 @@ router.post('/update-password/:resetId',middleware,async(req,res) => {
 
 })
 
-router.get('/check-password-link/:resetId',async(req, res) => {
+router.get('/check-password-link/:resetId',async(req:any, res:any) => {
     try{
         const id=req.params.resetId;
         const find=await FP.findOne({where:{id:id}});

@@ -4,6 +4,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const router = (0, express_1.Router)();
+// import {authenticate} from '../middleware/auth';
+// const middleware = authenticate();
 const User = require('../models/user');
 const Order = require('../models/order');
 const bcrypt = require('bcrypt');
