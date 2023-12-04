@@ -1,33 +1,32 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const Sequelize = require('sequelize');
-const sequelize = require('../util/db');
-const User = sequelize.define('user', {
-    id: {
+const Sequelize= require('sequelize');
+const sequelize= require('../util/db');
+const User= sequelize.define('user',{
+    id:{
         type: Sequelize.INTEGER,
         autoIncrement: true,
         allowNull: false,
         primaryKey: true
     },
-    name: {
+    name:{
         type: Sequelize.STRING,
         allowNull: false
     },
-    email: {
+    email:{
         type: Sequelize.STRING,
         allowNull: false
     },
-    password: {
+    password:{
         type: Sequelize.STRING,
         allowNull: false
     },
-    isPremiumUser: {
+    isPremiumUser:{
         type: Sequelize.BOOLEAN,
         defaultValue: false
     },
-    totalExpense: {
+    totalExpense:{
         type: Sequelize.INTEGER,
-        defaultValue: 0
+        defaultValue:0
     }
-});
-exports.default = User;
+})
+
+module.exports= User;
