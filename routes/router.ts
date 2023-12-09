@@ -15,7 +15,7 @@ import FP from'../models/forgetPassword';
 dot_env.config();
 
 
-let userId=null;
+let userId:number=0;
 router.post('/signup',async(req:any,res:any) => {
     const name= req.body.name;
     const email= req.body.email;
@@ -101,7 +101,7 @@ router.get('/getExpense',middleware,(req:any,res:any) => {
     console.log(req.user)
     req.user.getExpenses().then((response:any)=>{ return res.json({response 
         , isPremiumUser : req.user.isPremiumUser}
-        )}).catch((err) => {
+        )}).catch((err:any) => {
         console.log(err)
     })
 })
@@ -179,7 +179,7 @@ router.post('/updateTransaction',middleware,(req:any,res:any)=>{
             console.error(err);
         })
     }
-    catch(err){
+    catch(err:any){
         console.error(err);
     }
 })

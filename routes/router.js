@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -26,32 +17,32 @@ var Brevo = require('@getbrevo/brevo');
 const dotenv_1 = __importDefault(require("dotenv"));
 const forgetPassword_1 = __importDefault(require("../models/forgetPassword"));
 dotenv_1.default.config();
-let userId = null;
-router.post('/signup', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+let userId = 0;
+router.post('/signup', async (req, res) => {
     const name = req.body.name;
     const email = req.body.email;
     const password = req.body.password;
-    const exist = yield user_1.default.findOne({ where: { email: email } });
+    const exist = await user_1.default.findOne({ where: { email: email } });
     if (exist != null) {
         res.json({ success: false, message: 'already exists' });
     }
     else {
         const saltRounds = 10;
-        bcrypt_1.default.hash(password, saltRounds, (err, hash) => __awaiter(void 0, void 0, void 0, function* () {
+        bcrypt_1.default.hash(password, saltRounds, async (err, hash) => {
             console.log(err);
-            const newUser = yield user_1.default.create({ name: name, email: email, password: hash });
+            const newUser = await user_1.default.create({ name: name, email: email, password: hash });
             // userId=newUser.id;
             res.json({ success: true, message: 'new user registered' });
-        }));
+        });
     }
-}));
+});
 function tokenCreation(userId, isPremiumUser) {
     return jsonwebtoken_1.default.sign({ userId: userId, isPremiumUser }, 'secretKey'); ////////////////
 }
-router.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/login', async (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
-    const exist_email = yield user_1.default.findOne({ where: { email: email } });
+    const exist_email = await user_1.default.findOne({ where: { email: email } });
     console.log(exist_email);
     if (exist_email == null) {
         res.json({ success: false, status: 404, message: "User not found .... Please signup first" });
@@ -70,8 +61,8 @@ router.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* 
             }
         });
     }
-}));
-router.post('/dailyExpense', auth_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+router.post('/dailyExpense', auth_1.default, async (req, res) => {
     const date = req.body.date;
     const amount = req.body.amount;
     const description = req.body.description;
@@ -80,18 +71,18 @@ router.post('/dailyExpense', auth_1.default, (req, res) => __awaiter(void 0, voi
         date, amount, description, category
     };
     // const t= await sequelize.transaction();  
-    req.user.createExpense(expense).then((response) => __awaiter(void 0, void 0, void 0, function* () {
+    req.user.createExpense(expense).then(async (response) => {
         const total_expense = +req.user.totalExpense + +amount;
         req.user.totalExpense = total_expense;
-        yield req.user.save();
+        await req.user.save();
         //    await t.commit();
         console.log(response);
         res.json(response);
-    })).catch((err) => {
+    }).catch((err) => {
         //    t.rollback();
         console.error(err);
     });
-}));
+});
 router.get('/getExpense', auth_1.default, (req, res) => {
     console.log("user");
     console.log(req.user);
@@ -102,17 +93,17 @@ router.get('/getExpense', auth_1.default, (req, res) => {
         console.log(err);
     });
 });
-router.delete('/delete/:id', auth_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const expense_amount = yield expense_1.default.findAll({ where: { id: req.params.id } });
-    const user_totalExpense = yield user_1.default.findAll({ where: { id: req.params.id } });
+router.delete('/delete/:id', auth_1.default, async (req, res) => {
+    const expense_amount = await expense_1.default.findAll({ where: { id: req.params.id } });
+    const user_totalExpense = await user_1.default.findAll({ where: { id: req.params.id } });
     user_totalExpense.totalExpense = user_totalExpense.totalExpense - expense_amount.amount;
     expense_1.default.destroy({ where: { id: req.params.id } })
         .then((response) => {
         res.json({ success: true, message: "deleted ->  ", response });
     })
         .catch((err) => { console.log(err); });
-}));
-router.get('/premiumMembership', auth_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+router.get('/premiumMembership', auth_1.default, async (req, res) => {
     try {
         var rzp = new razorpay_1.default({
             key_id: process.env.RAZORPAY_KEY_ID,
@@ -122,20 +113,20 @@ router.get('/premiumMembership', auth_1.default, (req, res) => __awaiter(void 0,
             amount: 2500,
             currency: "INR"
         };
-        const order = yield rzp.orders.create(options);
+        const order = await rzp.orders.create(options);
         console.log("order", order);
         // if(err){
         //         console.log(err);
         //     }
         //console.log(req.user)
-        yield req.user.createOrder({ order_id: order.id, status: "PENDING" });
+        await req.user.createOrder({ order_id: order.id, status: "PENDING" });
         //    await Order.create({order_id : order.id , status :"PENDING",userId :userId}) //
         return res.status(201).json({ order, key_id: rzp.key_id });
     }
     catch (err) {
         console.log(err);
     }
-}));
+});
 // function parseJwt (token) {
 //         var base64Url = token.split('.')[1];
 //         var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -148,16 +139,16 @@ router.post('/updateTransaction', auth_1.default, (req, res) => {
     try {
         console.log("req.body", req.body);
         const { payment_id, order_id } = req.body;
-        order_1.default.findOne({ where: { order_id: order_id } }).then((order) => __awaiter(void 0, void 0, void 0, function* () {
+        order_1.default.findOne({ where: { order_id: order_id } }).then(async (order) => {
             order.payment_id = payment_id;
             order.status = "successful";
-            yield order.save();
+            await order.save();
             req.user.isPremiumUser = true;
             const token = tokenCreation(req.user.id, true);
             // const decodedToken= parseJwt(token);
-            yield req.user.save();
+            await req.user.save();
             return res.json({ success: true, token, isPremiumUser: true });
-        })).catch((err) => {
+        }).catch((err) => {
             console.error(err);
         });
     }
@@ -165,11 +156,11 @@ router.post('/updateTransaction', auth_1.default, (req, res) => {
         console.error(err);
     }
 });
-router.post('/forgetPassword', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/forgetPassword', async (req, res) => {
     try {
         const rec_email = req.body.email;
         console.log(rec_email);
-        const user = yield user_1.default.findOne({ where: { email: rec_email } });
+        const user = await user_1.default.findOne({ where: { email: rec_email } });
         console.log(user);
         console.log(user == null);
         if (user === null)
@@ -182,9 +173,9 @@ router.post('/forgetPassword', (req, res) => __awaiter(void 0, void 0, void 0, f
         const reciever = [{
                 "email": rec_email
             }];
-        const link = yield user.createFp();
+        const link = await user.createFp();
         console.log("link", link);
-        const response = yield apiInstance.sendTransacEmail({
+        const response = await apiInstance.sendTransacEmail({
             sender,
             to: reciever,
             subject: 'testing',
@@ -192,44 +183,44 @@ router.post('/forgetPassword', (req, res) => __awaiter(void 0, void 0, void 0, f
             htmlContent: '<p>Click the link to reset your password</p>' +
                 `<a href="http://127.0.0.1:5500/frontend/Password/reset_password.html?reset=${link.id}">click here</a>`
         });
-        yield forgetPassword_1.default.update({ isActive: true }, { where: { id: link.id } });
+        await forgetPassword_1.default.update({ isActive: true }, { where: { id: link.id } });
         return res.json({ success: true, response });
     }
     catch (e) {
         console.log(e);
         return res.status(500).json({ success: false, msg: "Internal server error" });
     }
-}));
-router.post('/update-password/:resetId', auth_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+router.post('/update-password/:resetId', auth_1.default, async (req, res) => {
     try {
         const id = req.params.resetId;
         const newPassword = req.body.newPassword;
-        const resetUser = yield forgetPassword_1.default.findByPk(id);
+        const resetUser = await forgetPassword_1.default.findByPk(id);
         const user_id = resetUser.userId;
         console.log("user_id", user_id);
         if (!(resetUser.isActive)) {
             return res.json({ success: false, msg: "Link has expired... Please try again" });
         }
         const user = resetUser.getUser();
-        const hash = yield bcrypt_1.default.hash(newPassword, 10);
-        yield user_1.default.update({ password: hash }, { where: { id: user_id } });
-        yield forgetPassword_1.default.update({ isActive: false }, { where: { id: id } });
+        const hash = await bcrypt_1.default.hash(newPassword, 10);
+        await user_1.default.update({ password: hash }, { where: { id: user_id } });
+        await forgetPassword_1.default.update({ isActive: false }, { where: { id: id } });
         return res.status(200).json({ success: true, message: "Password updated successfully" });
     }
     catch (err) {
         console.log(err);
         return res.status(500).json({ success: false, message: "Internal Server error" });
     }
-}));
-router.get('/check-password-link/:resetId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+router.get('/check-password-link/:resetId', async (req, res) => {
     try {
         const id = req.params.resetId;
-        const find = yield forgetPassword_1.default.findOne({ where: { id: id } });
+        const find = await forgetPassword_1.default.findOne({ where: { id: id } });
         return res.json({ isActive: find.isActive });
     }
     catch (err) {
         console.log(err);
         return res.status(500).json({ success: false, message: "Internal server error!!" });
     }
-}));
+});
 exports.default = router;
