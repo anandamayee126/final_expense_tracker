@@ -1,3 +1,31 @@
 .hide{
     display : none;
 }
+
+#login_back
+{
+    background-image: url("login.jpg");
+}
+#signup_back{
+    background-image: url("login.jpg");
+    
+}
+/* #my-form{
+    background-color: antiquewhite;
+} */
+body{
+    /* margin: 20px,20px,20px,20px; */
+    border: 2px solid white;
+    border-radius: 10px;
+    color: white;
+    margin-right: 590px;
+    margin-top: 5%;
+    margin-left: 20%;
+    /* box-shadow: 60px; */
+    padding-bottom: 10px;
+    background-color: antiquewhite;
+
+}
+a{
+    color: white;
+}
