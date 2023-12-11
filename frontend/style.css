@@ -13,19 +13,27 @@
 /* #my-form{
     background-color: antiquewhite;
 } */
+h1{
+    margin-left: 20px;
+}
+#login{
+    margin-left: 20px;
+}
+#my-form{
+    margin-left: 20px;
+}
 body{
     /* margin: 20px,20px,20px,20px; */
-    border: 2px solid white;
+    border: 2px solid rgb(19, 2, 2);
     border-radius: 10px;
-    color: white;
+    color: rgb(7, 6, 6);
     margin-right: 590px;
     margin-top: 5%;
     margin-left: 20%;
     /* box-shadow: 60px; */
     padding-bottom: 10px;
-    background-color: antiquewhite;
-
+    /* background-color: antiquewhite; */
 }
 a{
-    color: white;
+    color: rgb(82, 21, 206);
 }

@@ -7,6 +7,6 @@ async function sendMail(e){
     const email=e.target.email.value;
     // const token= localStorage.getItem('token')
     console.log(email);
-    const send_email= await axios.post('http://localhost:4000/user/forgetPassword',{email});
+    const send_email= await axios.post('http://54.91.64.16:4000/user/forgetPassword',{email});
     console.log(send_email);
 }

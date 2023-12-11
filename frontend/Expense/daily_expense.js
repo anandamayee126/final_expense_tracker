@@ -7,7 +7,7 @@ const razor_pay=document.getElementById('razor')
 
 window.addEventListener('load',async (req,res) => {   ///////NOT WORKING
     const token= localStorage.getItem('token');
-    const all_expense= await axios.get('http://localhost:4000/user/getExpense',{headers: {'Authorization': token}});
+    const all_expense= await axios.get('http://54.91.64.16:4000/user/getExpense',{headers: {'Authorization': token}});
     console.log("all_expenses",all_expense);
     if(all_expense.data.isPremiumUser){
         show_leaderBoard.classList.remove('hide')
@@ -39,7 +39,7 @@ function addDailyExpense(e){
     }
     const token= localStorage.getItem('token');
 
-   axios.post('http://localhost:4000/user/dailyExpense',expense , {headers: {'Authorization': token}}).then(response => {console.log(response)}).catch(err => {console.log(err)});
+   axios.post('http://54.91.64.16:4000/user/dailyExpense',expense , {headers: {'Authorization': token}}).then(response => {console.log(response)}).catch(err => {console.log(err)});
 
 }
 
@@ -66,7 +66,7 @@ function displayExpense(expense){
     const token= localStorage.getItem('token');
     button.onclick  =()=>{
 
-        axios.delete('http://localhost:4000/user/delete/' + expense.id,{headers: {'Authorization': token}})
+        axios.delete('http://54.91.64.16:4000/user/delete/' + expense.id,{headers: {'Authorization': token}})
         .then((res)=>{
             if(res.status == 200)
                 ul.removeChild(li)
@@ -84,7 +84,7 @@ show_leaderBoard.addEventListener('click' , showLeaderboard)
     async function showLeaderboard(){
         const token=localStorage.getItem('token');
         console.log(token)
-        const userLeaderboard= await axios.get('http://localhost:4000/premium/showLeaderboard',{headers:{"Authorization":token}});
+        const userLeaderboard= await axios.get('http://54.91.64.16:4000/premium/showLeaderboard',{headers:{"Authorization":token}});
         console.log("userLeaderboard",userLeaderboard);
         var leaderboard_UL= document.getElementById('leaderboard')
         leaderboard_UL.innerHTML+='<h1>Leader Board</h1>';
@@ -98,13 +98,13 @@ show_leaderBoard.addEventListener('click' , showLeaderboard)
 
 razor_pay.onclick= async function(e){
     const token= localStorage.getItem('token');
-    const response= await axios.get('http://localhost:4000/user/premiumMembership',{headers:{"Authorization":token}});
+    const response= await axios.get('http://54.91.64.16:4000/user/premiumMembership',{headers:{"Authorization":token}});
     console.log("response",response);
     var options={
         "key":response.data.key_id,
         "order_id":response.data.order.id,
         "handler":async function(response){
-           const result= await axios.post('http://localhost:4000/user/updateTransaction',{
+           const result= await axios.post('http://54.91.64.16:4000/user/updateTransaction',{
             order_id:options.order_id,
             payment_id:response.razorpay_payment_id,  
 

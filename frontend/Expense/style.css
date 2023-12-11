@@ -5,3 +5,10 @@
 #curr{
     padding: 10px;
 }
+
+#daily-expense{
+    background-image: url("daily_expense.jpg");
+}
+#report_expense{
+    background-image: url("daily_expense.jpg");
+}

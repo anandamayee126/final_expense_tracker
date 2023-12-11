@@ -1,7 +1,7 @@
 const form= document.getElementById('my-form')
 form.addEventListener('submit', addUser);
 
-import axios from 'axios';
+// import axios from 'axios';
 
 function addUser(e){
     e.preventDefault();
@@ -13,7 +13,7 @@ function addUser(e){
         name,email,password
     }
 
-    const post= axios.post('http://localhost:4000/user/signup',user).then((response)=>{
+    const post= axios.post('http://54.91.64.16:4000/user/signup',user).then((response)=>{
         console.log(response);
         window.location="login.html";
     }).catch(err => {
