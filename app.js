@@ -38,7 +38,7 @@ const accessLogStream= fs.createWriteStream(path.join(__dirname,'access.log'),{f
 // }).catch((err) => {
 //     console.log(err);
 // })
-app.use(helmet());
+// app.use(helmet());
 app.use(morgan('combined',{stream: accessLogStream}));
 
 app.use(express.static('frontend'))
