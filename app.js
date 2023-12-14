@@ -41,7 +41,7 @@ const accessLogStream= fs.createWriteStream(path.join(__dirname,'access.log'),{f
 // app.use(helmet());
 app.use(morgan('combined',{stream: accessLogStream}));
 
-app.use(express.static(path.join(__dirname , 'frontend')))
+app.use(express.static(path.join(__dirname , 'index.html')))
 
 sequelize.sync().then(()=>{
     app.listen(4000);
