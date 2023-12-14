@@ -13,7 +13,7 @@ function addUser(e){
         name,email,password
     }
 
-    const post= axios.post('http://54.91.64.16:4000/user/signup',user).then((response)=>{
+    const post= axios.post('http://54.90.219.176:4000/user/signup',user).then((response)=>{
         console.log(response);
         console.log("hii");
         window.location="login.html";

@@ -9,7 +9,7 @@ window.addEventListener('load' , async()=>{
         alert("wrong link")
         location.href ='forgot-password.html'
     }
-    const res = await axios.get(`http://54.91.64.16:4000/user/check-password-link/${resetId}`)
+    const res = await axios.get(`http://54.90.219.176:4000/user/check-password-link/${resetId}`)
     if(!res.data.isActive){
         alert("link expired get a new one")
         location.href ='forgotPassword.html'
@@ -25,7 +25,7 @@ async function updatePassword(e){
     e.preventDefault();
     const newPassword = e.target.new_password.value;
     const token= localStorage.getItem('token');
-    const update= await axios.post(`http://54.91.64.16:4000/user/update-password/${resetId}`,{newPassword},{headers:{'Authorization':token}});
+    const update= await axios.post(`http://54.90.219.176:4000/user/update-password/${resetId}`,{newPassword},{headers:{'Authorization':token}});
     alert("Password updated successfully");
     // console.log("update- ",update);
     location.href="../login.html";

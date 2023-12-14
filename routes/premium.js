@@ -87,7 +87,7 @@ premium.post('/downloadExpense',middleware, async(req,res) => {
         console.log("stringifiedExpenses ",stringifiedExpenses);
         const fileName= `${name}_${random}.txt`;
         const fileUrl= await uploadToS3(stringifiedExpenses,fileName);
-        return res.status(200).json({fileUrl , success : true});
+        return res.status(200).json({fileUrl ,fileName, success : true});
     }
     catch(err){
         return res.status(500).json({success:false,message:err.message});

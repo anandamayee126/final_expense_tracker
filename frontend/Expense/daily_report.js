@@ -8,7 +8,7 @@ async function showDaily(e){
     const date= e.target.date.value;
     console.log(date);
     const token= localStorage.getItem('token');
-    const result= await axios.post('http://54.91.64.16:4000/premium/getdaily',{date},{headers:{"Authorization":token}});
+    const result= await axios.post('http://54.90.219.176:4000/premium/getdaily',{date},{headers:{"Authorization":token}});
     console.log("result_front", result);
 
     const table= document.getElementById('table')
@@ -43,9 +43,13 @@ async function showDaily(e){
     
     // const token= localStorage.getItem('token');
     download_btn.onclick=()=>{
-        axios.post('http://54.91.64.16:4000/premium/downloadExpense',{data:result.data},{headers: {'Authorization': token}})
+        axios.post('http://54.90.219.176:4000/premium/downloadExpense',{data:result.data},{headers: {'Authorization': token}})
         .then((response)=>{
-            console.log(response);
+            console.log("download_expense",response);
+            const a= document.createElement('a');
+            a.href= response.data.fileUrl;
+            a.download=response.data.fileName;
+            a.click();
         })
         .catch((error)=>{
             console.log(error);

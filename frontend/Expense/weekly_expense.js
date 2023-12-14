@@ -1,13 +1,13 @@
 const weekly_form= document.getElementById('weekly_form');
 weekly_form.addEventListener('submit',showWeekly);
-import axios from 'axios';
+// import axios from 'axios';
 
 async function showWeekly(e){
     e.preventDefault();
     const date= e.target.date.value;
     console.log(date);
     const token= localStorage.getItem('token');
-    const result= await axios.post('http://54.91.64.16:4000/premium/getweekly',{date},{headers:{"Authorization":token}});
+    const result= await axios.post('http://54.90.219.176:4000/premium/getweekly',{date},{headers:{"Authorization":token}});
     // console.log("result_front", result);
 
     const table= document.getElementById('weekly_table') 
@@ -42,10 +42,13 @@ async function showWeekly(e){
     
     // const token= localStorage.getItem('token');
     download_btn.onclick=()=>{
-        axios.post('http://54.91.64.16:4000/premium/downloadExpense',{data:result.data},{headers: {'Authorization': token}})
+        axios.post('http://54.90.219.176:4000/premium/downloadExpense',{data:result.data},{headers: {'Authorization': token}})
         .then((response)=>{
-            console.log("response",response);
-            console.log("link", response.data.fileUrl);
+            console.log("download_expense",response);
+            const a= document.createElement('a');
+            a.href= response.data.fileUrl;
+            a.download=response.data.fileName;
+            a.click();
         })
         .catch((error)=>{
             console.log(error);

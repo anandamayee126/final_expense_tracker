@@ -214,7 +214,7 @@ router.post('/forgetPassword',async(req,res)=>{
             subject : 'testing',
             textContent: 'hello , this is a text content',
             htmlContent: '<p>Click the link to reset your password</p>'+
-            `<a href="http://127.0.0.1:5500/frontend/Password/reset_password.html?reset=${link.id}">click here</a>`
+            `<a href="http://127.0.0.1:5500/Password/reset_password.html?reset=${link.id}">click here</a>`
         })
             await FP.update({isActive:true},{where:{id: link.id}});
             return res.json({success : true , response})
@@ -265,10 +265,24 @@ router.get('/check-password-link/:resetId',async(req, res) => {
         return res.status(500).json({success:false, message:"Internal server error!!"});
 
     }
-    
-    
+})
 
-
+router.post('/get-expense/:page',middleware,async(req, res)=>{
+    try {
+        const page = +req.query.page || 1
+        const items = +req.body.items || 5
+        console.log(items)
+        const exp =  req.user.getExpenses({
+            offset: (page - 1) * items,
+            limit: items
+        })
+        const totalExp =  req.user.countExpenses()
+        const [expenses ,totalExpenses ] = await Promise.all([exp , totalExp])
+        return res.json({ expenses, totalExpenses })
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json({ success: false, msg: "Internal server error" })
+    }
 })
 
 
