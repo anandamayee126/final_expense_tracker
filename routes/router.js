@@ -83,7 +83,6 @@ router.post('/dailyExpense',middleware,async(req,res)=>{
     }
     // const t= await sequelize.transaction();  
     req.user.createExpense(expense).then(async (response) => {
-
         const  total_expense= +req.user.totalExpense+ +amount;
         req.user.totalExpense=total_expense;
         await req.user.save();

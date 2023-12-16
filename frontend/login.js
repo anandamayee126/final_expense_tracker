@@ -19,7 +19,7 @@ async function checkUser(e){
     console.log("login",login);
     if(login.data.success===true){
        localStorage.setItem('token',login.data.token);
-        window.location="/Expense/daily_expense.html"
+        window.location="./Expense/daily_expense.html"
     }
     else
     {
