@@ -24,7 +24,7 @@ premium.get('/showLeaderboard',middleware,async(req,res)=>{
                 attributes :[]
             }
         ],
-        group : [`User.id`],
+        group : ['id'],
         order : [[sequelize.literal('total_expense'), 'DESC']]
     })
     return res.json(result)
