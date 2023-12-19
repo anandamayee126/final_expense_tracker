@@ -266,7 +266,7 @@ router.get('/check-password-link/:resetId',async(req, res) => {
     }
 })
 
-router.post('/get-expense/:page',middleware,async(req, res)=>{
+router.post('/get-expense',middleware,async(req, res)=>{
     try {
         const page = +req.query.page || 1
         const items = +req.body.items || 5
