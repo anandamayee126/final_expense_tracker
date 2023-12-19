@@ -1,6 +1,6 @@
 div{
     align-items: center;
-    margin-left: 250px;
+    margin-left: 200px;
     margin-top: 30px;
     border: 2px solid black;
     padding: 100px 100px 100px 100px;
@@ -13,7 +13,7 @@ div{
     padding: 33px 33px 33px 33px;
     background-color: rgb(241, 91, 91);
     border-radius: 15px;
-    margin-left: 70px;
+    margin-left: 60px;
 
 }
 #weekly{
