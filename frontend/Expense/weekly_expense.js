@@ -7,7 +7,7 @@ async function showWeekly(e){
     const date= e.target.date.value;
     console.log(date);
     const token= localStorage.getItem('token');
-    const result= await axios.post('http://localhost:4000/premium/getweekly',{date},{headers:{"Authorization":token}});
+    const result= await axios.post('http://54.90.219.176:4000/premium/getweekly',{date},{headers:{"Authorization":token}});
     // console.log("result_front", result);
 
     const table= document.getElementById('weekly_table') 
@@ -42,7 +42,7 @@ async function showWeekly(e){
     
     // const token= localStorage.getItem('token');
     download_btn.onclick=()=>{
-        axios.post('http://localhost:4000/premium/downloadExpense',{data:result.data},{headers: {'Authorization': token}})
+        axios.post('http://54.90.219.176:4000/premium/downloadExpense',{data:result.data},{headers: {'Authorization': token}})
         .then((response)=>{
             console.log("download_expense",response);
             const a= document.createElement('a');
