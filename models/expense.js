@@ -27,3 +27,6 @@ const Expense= sequelize.define('expense',{
 })
 
 module.exports= Expense;
+
+
+console.log("ho");
