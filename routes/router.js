@@ -83,7 +83,6 @@ router.post('/dailyExpense',middleware,async(req,res)=>{
     }
     // const t= await sequelize.transaction();  
     req.user.createExpense(expense).then(async (response) => {
-
         const  total_expense= +req.user.totalExpense+ +amount;
         req.user.totalExpense=total_expense;
         await req.user.save();
@@ -159,25 +158,25 @@ router.get('/premiumMembership',middleware,async(req, res) => {
 //         return JSON.parse(jsonPayload);
 //     }
 
-router.post('/updateTransaction',middleware,(req,res)=>{
+router.post('/updateTransaction',middleware,async(req,res)=>{
     try{
         
         console.log("req.body",req.body);
         const {payment_id,order_id} = req.body;
-        Order.findOne({where:{order_id:order_id}}).then(async (order) => {
-            order.payment_id=payment_id;
-            order.status="successful";
-            await order.save();
-            req.user.isPremiumUser=true;
+        const order= await Order.findOne({where:{order_id:order_id}})
+            const promise1=order.update({payment_id:payment_id,status:"successful"})
+            const promise2= req.user.update({isPremiumUser:true})
             const token= tokenCreation(req.user.id,true);
-           // const decodedToken= parseJwt(token);
+            Promise.all([promise1, promise2]).then(()=>{
+                return res.json({success:true,token,isPremiumUser:true,message:"Transaction successfull"});
+            }).catch(err=>{
+                console.log(err);
+            })
+            await order.save();
             await req.user.save();
-
-            return res.json({success:true,token,isPremiumUser:true});
             
-        }).catch((err) =>{
-            console.error(err);
-        })
+           // const decodedToken= parseJwt(token)
+            
     }
     catch(err){
         console.error(err);
