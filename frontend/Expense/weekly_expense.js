@@ -35,6 +35,7 @@ async function showWeekly(e){
         tr_value.appendChild(td_amount_value);
         tr_value.appendChild(td_description_value);
         table.appendChild(tr_value);
+        console.log("hii");
     })
     const download_btn= document.createElement('button');
     download_btn.textContent = 'Download Report';
