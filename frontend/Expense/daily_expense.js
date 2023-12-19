@@ -5,18 +5,19 @@ const show_leaderBoard= document.getElementById('showleaderboard')
 const razor_pay=document.getElementById('razor')
 // const Razorpay= require('razorpay');
 
-window.addEventListener('load',async (req,res) => {   ///////NOT WORKING
+window.addEventListener('load',async () => {   ///////NOT WORKING
     const token= localStorage.getItem('token');
-    const all_expense= await axios.get('http://54.90.219.176:4000/user/getExpense',{headers: {'Authorization': token}});
+    const all_expense= await axios.get('http://localhost:4000/user/getExpense',{headers: {'Authorization': token}});
     console.log("all_expenses",all_expense);
     if(all_expense.data.isPremiumUser){
         show_leaderBoard.classList.remove('hide')
         razor_pay.classList.add('hide')
     }
-    all_expense.data.response.forEach((element) => {
-        displayExpense(element);
+    renderElements()
+    // all_expense.data.response.forEach((element) => {
+    //     displayExpense(element);
         
-    });
+    // });
     
 
 
@@ -39,10 +40,38 @@ function addDailyExpense(e){
     }
     const token= localStorage.getItem('token');
 
-   axios.post('http://54.90.219.176:4000/user/dailyExpense',expense , {headers: {'Authorization': token}}).then(response => {console.log(response)}).catch(err => {console.log(err)});
+   axios.post('http://localhost:4000/user/dailyExpense',expense , {headers: {'Authorization': token}}).then(response => {console.log(response)}).catch(err => {console.log(err)});
 
 }
 
+async function renderElements() {
+    if (localStorage.getItem('token') == undefined)
+        window.location = "../login.html"
+
+    console.log(localStorage.getItem("isPremiumUser"))
+
+    // axiosInstance.setHeaders({});
+    const ITEMS_PER_PAGE = +localStorage.getItem('totalItems') || 5
+    console.log(ITEMS_PER_PAGE)
+    document.getElementById('pages').value = ITEMS_PER_PAGE 
+    let result = await axios.post('http://localhost:4000/user/get-expense' , {items : ITEMS_PER_PAGE} , {headers :{
+        'Authorization' : localStorage.getItem('token')
+    }})
+    console.log(result)
+    if(ITEMS_PER_PAGE > result.data.totalExpenses){
+        console.log(result.data.totalExpenses)
+        document.getElementById('next').classList.add('hide')
+    }else{
+        document.getElementById('next').classList.remove('hide')
+        console.log(result.data.totalExpenses)
+    }
+    let users = result.data.expenses;
+    ul.innerHTML = ``
+    users.forEach((value) => {
+        displayExpense(value)
+        // ul.appendChild(li)
+})
+}
 function displayExpense(expense){
     const li = document.createElement('li');
     console.log(expense);
@@ -66,7 +95,7 @@ function displayExpense(expense){
     const token= localStorage.getItem('token');
     button.onclick  =()=>{
 
-        axios.delete('http://54.90.219.176:4000/user/delete/' + expense.id,{headers: {'Authorization': token}})
+        axios.delete('http://localhost:4000/user/delete/' + expense.id,{headers: {'Authorization': token}})
         .then((res)=>{
             if(res.status == 200)
                 ul.removeChild(li)
@@ -84,7 +113,7 @@ show_leaderBoard.addEventListener('click' , showLeaderboard)
     async function showLeaderboard(){
         const token=localStorage.getItem('token');
         console.log(token)
-        const userLeaderboard= await axios.get('http://54.90.219.176:4000/premium/showLeaderboard',{headers:{"Authorization":token}});
+        const userLeaderboard= await axios.get('http://localhost:4000/premium/showLeaderboard',{headers:{"Authorization":token}});
         console.log("userLeaderboard",userLeaderboard);
         var leaderboard_UL= document.getElementById('leaderboard')
         leaderboard_UL.innerHTML+='<h1>Leader Board</h1>';
@@ -98,13 +127,13 @@ show_leaderBoard.addEventListener('click' , showLeaderboard)
 
 razor_pay.onclick= async function(e){
     const token= localStorage.getItem('token');
-    const response= await axios.get('http://54.90.219.176:4000/user/premiumMembership',{headers:{"Authorization":token}});
+    const response= await axios.get('http://localhost:4000/user/premiumMembership',{headers:{"Authorization":token}});
     console.log("response",response);
     var options={
         "key":response.data.key_id,
         "order_id":response.data.order.id,
         "handler":async function(response){
-           const result= await axios.post('http://54.90.219.176:4000/user/updateTransaction',{
+           const result= await axios.post('http://localhost:4000/user/updateTransaction',{
             order_id:options.order_id,
             payment_id:response.razorpay_payment_id,  
 
@@ -133,6 +162,16 @@ razor_pay.onclick= async function(e){
 }
 
 //pagination
+
+document.getElementById('pages').addEventListener('change',async(e)=>{
+    try{
+        const page= e.target.value;
+        localStorage.setItem('totalItems',page);
+        renderElements();
+    }catch(e){
+        console.log(e);
+    }
+})
 document.querySelector('.page').addEventListener('click' , async(e)=>{
     try{
         const items = +localStorage.getItem('totalItems') || 5  ///////////////////
@@ -140,8 +179,8 @@ document.querySelector('.page').addEventListener('click' , async(e)=>{
             console.log('clicked')
             console.log(e.target.id == 'next')
             const page = e.target.value
-            const result = await axios.post(`http://54.90.219.176:4000/user/get-expense/${page}` , {items} , {headers:{'Authorization': localStorage.getItem('token')}})
-            console.log(result)
+            const result = await axios.post(`http://localhost:4000/user/get-expense?page=${page}` , {items} , {headers:{'Authorization': localStorage.getItem('token')}})
+            console.log(result) 
             let users = result.data.expenses;
             ul.innerHTML = `` 
             users.forEach((value) => {
@@ -153,35 +192,35 @@ document.querySelector('.page').addEventListener('click' , async(e)=>{
             
             if(e.target.id == 'next'){
                 prev.classList.remove('hide')
-                prev.textContent = curr.textContent
+                // prev.textContent = curr.textContent
                 prev.value = curr.value
-                curr.textContent = next.textContent
+                // curr.textContent = next.textContent
                 curr.value = next.value
                 if(result.data.totalExpenses > items * page){
-                    next.value = +page + 1
-                    next.textContent = +page + 1
-                    // next.classList.remove('hide')
+                    next.value = +page + 1 // string to number
+                    // next.textContent = +page + 1
+                    next.classList.remove('hide')
                 }else{
                     next.classList.add('hide')
                 }
             }else if(e.target.id == 'prev'){
                 if(page > 1){
                     next.classList.remove('hide')
-                    prev.textContent = page -1
+                    // prev.textContent = page -1
                     prev.value = page-1
 
-                    curr.textContent = page
+                    // curr.textContent = page
                     curr.value = page
 
-                    next.textContent = +page+1
+                    // next.textContent = +page+1
                     next.value = +page+1
                 }else{
                     prev.classList.add('hide')
-                    curr.textContent = 1
+                    // curr.textContent = 1
                     curr.value = 1
                     if(result.data.totalExpenses > items * page){
                         next.value = 2
-                        next.textContent = 2
+                        // next.textContent = 2
                         next.classList.remove('hide')
                     }else{
     
