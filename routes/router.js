@@ -55,7 +55,6 @@ router.post('/login',async(req,res)=>{
     }
     else{
         userId= exist_email.id;
-
         bcrypt.compare(password,exist_email.password,(err,result)=>{
             if(err){
                 res.json({success:false,message:"Something went wrong"});

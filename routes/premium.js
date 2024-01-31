@@ -27,10 +27,7 @@ premium.get('/showLeaderboard',middleware,async(req,res)=>{
         group : ['id'],
         order : [[sequelize.literal('total_expense'), 'DESC']]
     })
-    return res.json(result)
-
-    
-
+    return res.json(result);
 })
 
 
@@ -113,7 +110,7 @@ premium.post('/downloadExpense',middleware, async(req,res) => {
         try {
             // return res.json({message: "test"});
             if (req.user.isPremiumUser) {
-                const endDate= new Date(req.body.date);  //21
+                const endDate= new Date(req.body.date);  //22
                 var startDate = new Date(endDate.getFullYear() , endDate.getMonth() , endDate.getDate()-7)
                 console.log(startDate);
                 // startDate= String(startDate);
@@ -161,13 +158,4 @@ premium.post('/downloadExpense',middleware, async(req,res) => {
         }
     })
 
-    premium.get('/pagination/:pageNo',middleware,async(req,res)=>{
-        try{
-            
-
-        }
-        catch(err){
-
-        }
-    })
 module.exports= premium;

@@ -4,31 +4,31 @@ const cors= require('cors');
 const router= require('./routes/router.js');
 const User = require('./models/user.js');
 const Expense= require('./models/expense.js');
-const sequelize= require('./util/db.js');
+const mongoConnect= require('./util/db.js');
 const Order= require('./models/order.js');
 const premium= require('./routes/premium.js');
 const FP= require('./models/forgetPassword.js');
 // const helmet= require('helmet');
-const morgan= require('morgan');
-const fs= require('fs');
-const path= require('path');
+// const morgan= require('morgan');
+// const fs= require('fs');
+// const path= require('path');
 
 app.use(cors());
 app.use(express.json());
 
-User.hasMany(Expense);
-Expense.belongsTo(User);
+// User.hasMany(Expense);
+// Expense.belongsTo(User);
 
-User.hasMany(Order);
-Order.belongsTo(User);
+// User.hasMany(Order);
+// Order.belongsTo(User);
 
-User.hasMany(FP);
-FP.belongsTo(User);
+// User.hasMany(FP);
+// FP.belongsTo(User);
 
 app.use('/user',router);
 app.use('/premium',premium)
 
-const accessLogStream= fs.createWriteStream(path.join(__dirname,'access.log'),{flags:'a'});
+// const accessLogStream= fs.createWriteStream(path.join(__dirname,'access.log'),{flags:'a'});
 // User.create({
 //     name:'Anandamayee',
 //     email:'anandamayee@gmail.com',
@@ -39,12 +39,17 @@ const accessLogStream= fs.createWriteStream(path.join(__dirname,'access.log'),{f
 //     console.log(err);
 // })
 // app.use(helmet());
-app.use(morgan('combined',{stream: accessLogStream}));
+// app.use(morgan('combined',{stream: accessLogStream}));
 
-app.use(express.static(path.join(__dirname , 'frontend')))
+// app.use(express.static(path.join(__dirname , 'frontend')))
 
-sequelize.sync().then(()=>{
-    app.listen(4000);
-}).catch((err) => {
-    console.error(err)
+// sequelize.sync().then(()=>{
+//     app.listen(4000);
+// }).catch((err) => {
+//     console.error(err)
+// })
+
+mongoConnect((client)=>{
+    console.log(client);
+    app.listen(3000);
 })

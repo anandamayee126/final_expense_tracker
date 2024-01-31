@@ -7,7 +7,7 @@ const razor_pay=document.getElementById('razor')
 
 window.addEventListener('load',async () => {   ///////NOT WORKING  ///////NOT WORKING
     const token= localStorage.getItem('token');
-    const all_expense= await axios.get('http://54.90.219.176:4000/user/getExpense',{headers: {'Authorization': token}});
+    const all_expense= await axios.get('http://localhost:4000/user/getExpense',{headers: {'Authorization': token}});
     console.log("all_expenses",all_expense);
     if(all_expense.data.isPremiumUser){
         show_leaderBoard.classList.remove('hide')
@@ -39,7 +39,7 @@ function addDailyExpense(e){
     }
     const token= localStorage.getItem('token');
 
-    axios.post('http://54.90.219.176:4000/user/dailyExpense',expense , {headers: {'Authorization': token}}).then(response => {console.log(response)}).catch(err => {console.log(err)});
+    axios.post('http://localhost:4000/user/dailyExpense',expense , {headers: {'Authorization': token}}).then(response => {console.log(response)}).catch(err => {console.log(err)});
 
 }
 
@@ -54,7 +54,7 @@ async function renderElements() {
     const ITEMS_PER_PAGE = +localStorage.getItem('totalItems') || 5
     console.log(ITEMS_PER_PAGE)
     document.getElementById('pages').value = ITEMS_PER_PAGE 
-    let result = await axios.post('http://54.90.219.176:4000/user/get-expense' , {items : ITEMS_PER_PAGE} , {headers :{
+    let result = await axios.post('http://localhost:4000/user/get-expense' , {items : ITEMS_PER_PAGE} , {headers :{
         'Authorization' : localStorage.getItem('token')
     }})
     console.log(result)
@@ -95,7 +95,7 @@ function displayExpense(expense){
     const token= localStorage.getItem('token');
     button.onclick  =()=>{
 
-        axios.delete('http://54.90.219.176:4000/user/delete/' + expense.id,{headers: {'Authorization': token}})
+        axios.delete('http://localhost:4000/user/delete/' + expense.id,{headers: {'Authorization': token}})
         .then((res)=>{
             if(res.status == 200)
                 ul.removeChild(li)
@@ -113,7 +113,7 @@ show_leaderBoard.addEventListener('click' , showLeaderboard)
     async function showLeaderboard(){
         const token=localStorage.getItem('token');
         console.log(token)
-        const userLeaderboard= await axios.get('http://54.90.219.176:4000/premium/showLeaderboard',{headers:{"Authorization":token}});
+        const userLeaderboard= await axios.get('http://localhost:4000/premium/showLeaderboard',{headers:{"Authorization":token}});
         console.log("userLeaderboard",userLeaderboard);
         var leaderboard_UL= document.getElementById('leaderboard')
         leaderboard_UL.innerHTML+='<h1>Leader Board</h1>';
@@ -127,13 +127,13 @@ show_leaderBoard.addEventListener('click' , showLeaderboard)
 
 razor_pay.onclick= async function(e){
     const token= localStorage.getItem('token');
-    const response= await axios.get('http://54.90.219.176:4000/user/premiumMembership',{headers:{"Authorization":token}});
+    const response= await axios.get('http://localhost:4000/user/premiumMembership',{headers:{"Authorization":token}});
     console.log("response",response);
     var options={
         "key":response.data.key_id,
         "order_id":response.data.order.id,
         "handler":async function(response){
-           const result= await axios.post('http://54.90.219.176:4000/user/updateTransaction',{
+           const result= await axios.post('http://localhost:4000/user/updateTransaction',{
             order_id:options.order_id,
             payment_id:response.razorpay_payment_id,  
 
@@ -180,7 +180,7 @@ document.querySelector('.page').addEventListener('click' , async(e)=>{
             console.log('clicked')
             console.log(e.target.id == 'next')
             const page = e.target.value
-            const result = await axios.post(`http://54.90.219.176:4000/user/get-expense/?page=${page}` , {items} , {headers:{'Authorization': localStorage.getItem('token')}})
+            const result = await axios.post(`http://localhost:4000/user/get-expense/?page=${page}` , {items} , {headers:{'Authorization': localStorage.getItem('token')}})
             console.log(result) 
             let users = result.data.expenses;
             ul.innerHTML = `` 
@@ -204,7 +204,9 @@ document.querySelector('.page').addEventListener('click' , async(e)=>{
                 }else{
                     next.classList.add('hide')
                 }
-            }else if(e.target.id == 'prev'){
+            }
+            else if(e.target.id == 'prev')
+            {
                 if(page > 1){
                     next.classList.remove('hide')
                     // prev.textContent = page -1
