@@ -4,7 +4,7 @@ const cors= require('cors');
 const router= require('./routes/router.js');
 const User = require('./models/user.js');
 const Expense= require('./models/expense.js');
-const mongoConnect= require('./util/db.js');
+const mongoConnect= require('./utils/db.js').mongoConnect;
 const Order= require('./models/order.js');
 const premium= require('./routes/premium.js');
 const FP= require('./models/forgetPassword.js');
@@ -49,7 +49,6 @@ app.use('/premium',premium)
 //     console.error(err)
 // })
 
-mongoConnect((client)=>{
-    console.log(client);
+mongoConnect(() =>{
     app.listen(3000);
 })

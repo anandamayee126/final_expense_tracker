@@ -5,7 +5,7 @@ const Order = require('../models/order');
 const bcrypt = require('bcrypt');
 const Expense = require('../models/expense');
 const jwt= require('jsonwebtoken');
-const middleware= require('../middleware/auth');
+const middleware= require('../middlewares/auth');
 const Razorpay= require('razorpay');
 
 var Brevo = require('@getbrevo/brevo');
@@ -20,6 +20,14 @@ router.post('/signup',async(req,res) => {
     const name= req.body.name;
     const email= req.body.email;
     const password= req.body.password;
+
+    const user= new User(name,email,password);
+    user.save().then((res) => {
+        console.log(res);
+    }).catch((err) => {
+        console.log(err);
+    })
+
     
     
     const exist= await User.findOne({where: {email:email}});
