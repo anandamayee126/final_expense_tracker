@@ -1,3 +1,26 @@
+const getDb= require('../utils/db').getDb;
+class Expense{
+    constructor(date,amount,description,category){
+        this.date = date;
+        this.amount = amount;
+        this.description = description;
+        this.category = category;
+    }
+    save(){
+        const db=getDb();
+        return db.collection('expenses').insertOne(this).then((result) =>{
+            console.log(result)
+        }).catch((err) =>{
+            console.log(err)
+        })
+    }
+    
+    
+}
+
+module.exports= Expense;
+
+
 // const Sequelize = require('sequelize');
 // const sequelize = require('../util/db');
 // const Expense= sequelize.define('expense',{

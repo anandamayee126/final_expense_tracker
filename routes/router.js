@@ -21,25 +21,30 @@ router.post('/signup',async(req,res) => {
     const email= req.body.email;
     const password= req.body.password;
 
-    const user= new User(name,email,password);
-    user.save().then((res) => {
-        console.log(res);
-    }).catch((err) => {
-        console.log(err);
-    })
+    // const user= new User(name,email,password); 
+    // user.save().then((res) => {                              // ok
+    //     console.log(res);
+    // }).catch((err) => {
+    //     console.log(err);
+    // })
 
-    
-    
-    const exist= await User.findOne({where: {email:email}});
+    const exist= await User.findOne(email);                      //ok
     if(exist!=null){
         res.json({success: false,message:'already exists'});
     }
     else{
         const saltRounds=10;
         bcrypt.hash(password, saltRounds,async(err,hash) => {
+            
         console.log(err);
-        const newUser= await User.create({name:name,email:email,password:hash});
+        const newUser= new User(name,email,hash);    
+        newUser.save().then((res) => {                              // ok
+                console.log(res);
+            }).catch((err) => {
+                console.log(err);
+            })                                                      //ok
        // userId=newUser.id;
+        console.log("New user created",newUser);                          
         res.json({success: true,message:'new user registered'});
        })
     }
@@ -48,14 +53,14 @@ router.post('/signup',async(req,res) => {
 
 function tokenCreation(userId,isPremiumUser)
 {
-    return jwt.sign({userId:userId,isPremiumUser},'secretKey');    ////////////////
+    return jwt.sign({userId:userId,isPremiumUser},'secretKey');
 }
 
 router.post('/login',async(req,res)=>{
     const email= req.body.email;
     const password= req.body.password;
 
-    const exist_email= await User.findOne({where: {email:email}});
+    const exist_email= await User.findOne(email);         //ok
     console.log(exist_email);
     
     if(exist_email==null){
@@ -83,23 +88,23 @@ router.post('/dailyExpense',middleware,async(req,res)=>{
     const amount= req.body.amount;
     const description = req.body.description;
     const category= req.body.category;
-
-
-    const expense= {
-        date,amount,description,category
-    }
-    // const t= await sequelize.transaction();  
-    req.user.createExpense(expense).then(async (response) => {
-        const  total_expense= +req.user.totalExpense+ +amount;
-        req.user.totalExpense=total_expense;
-        await req.user.save();
-    //    await t.commit();
-        console.log(response);
-        res.json(response);
-    }).catch((err) => {
-        //    t.rollback();
-            console.error(err)
-        });
+  
+    const expense= new Expense(data,amount,description,category);
+    expense.save().then((exp) => {
+        const totalExpense= 
+    })
+    // req.user.createExpense(expense).then(async (response) => {
+    //     const  total_expense= +req.user.totalExpense+ +amount;
+    //     req.user.totalExpense=total_expense;
+    //     await req.user.save();
+    // //    await t.commit();
+    //     console.log(response);
+    //     res.json(response);
+    // }).catch((err) => {
+    //     //    t.rollback();
+    //         console.error(err)
+    // });
+    // const 
 })
 
 router.get('/getExpense',middleware,(req,res) => {

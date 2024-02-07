@@ -9,13 +9,26 @@ class User{
         this.totalExpense=totalExpense;
     }
     save(){
-        let db= getDb();
-        return db.collection('User').insertOne(this).then((result)=>{
+        const db= getDb();
+        return db.collection('users').insertOne(this).then((result)=>{
             console.log(result);
         }).catch((err)=>{
             console.log(err);
         })
     }
+    static findOne(email){
+        const db= getDb();
+        return db.collection('users').find({email:email}).toArray().then((user)=>{   //find() returns a cursor object which helps to handle the data 
+            console.log(user);
+            return user;   /////// need to understand
+
+        }).catch((err)=>{
+            console.log(err);
+            return err;
+
+        })
+    }
+    
 }
 // const User= sequelize.define('user',{
 //     id:{
