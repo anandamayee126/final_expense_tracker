@@ -7,6 +7,7 @@ const Expense = require('../models/expense');
 const jwt= require('jsonwebtoken');
 const middleware= require('../middlewares/auth');
 const Razorpay= require('razorpay');
+const Mongoose= require('mongoose');
 
 var Brevo = require('@getbrevo/brevo');
 // const Sbi= require('sib-api-v3-sdk');
@@ -28,8 +29,10 @@ router.post('/signup',async(req,res) => {
     //     console.log(err);
     // })
 
-    const exist= await User.findOne(email);                      //ok
-    if(exist!=null){
+    const exist= await User.findOne(email);    
+    console.log("line 33")                  //ok
+    console.log(exist)
+    if(exist){
         res.json({success: false,message:'already exists'});
     }
     else{
@@ -37,7 +40,10 @@ router.post('/signup',async(req,res) => {
         bcrypt.hash(password, saltRounds,async(err,hash) => {
             
         console.log(err);
-        const newUser= new User(name,email,hash);    
+        // const random = Ma()
+        // console.log(random)
+        const newUser= new User(name,email,hash,false,0);
+        console.log(newUser)    
         newUser.save().then((res) => {                              // ok
                 console.log(res);
             }).catch((err) => {
@@ -61,14 +67,14 @@ router.post('/login',async(req,res)=>{
     const password= req.body.password;
 
     const exist_email= await User.findOne(email);         //ok
-    console.log(exist_email);
+    console.log("line 70 of router",exist_email.id);
     
     if(exist_email==null){
         res.json({success:false, status:404, message:"User not found .... Please signup first"});
     }
     else{
-        userId= exist_email.id;
-        bcrypt.compare(password,exist_email.password,(err,result)=>{
+        userId= exist_email._id;
+        bcrypt.compare(password,exist_email.password,(err,result)=>{         //error in this line
             if(err){
                 res.json({success:false,message:"Something went wrong"});
             }
@@ -81,17 +87,25 @@ router.post('/login',async(req,res)=>{
         })
     }
 })
-
+//upto this working fine.
 
 router.post('/dailyExpense',middleware,async(req,res)=>{
     const date=req.body.date;
     const amount= req.body.amount;
     const description = req.body.description;
     const category= req.body.category;
-  
-    const expense= new Expense(data,amount,description,category);
+    userId= req.user._id;
+    console.log("line 97 of router",userId);
+    const expense= new Expense(req.user._id,date,amount,description,category);
     expense.save().then((exp) => {
-        const totalExpense= 
+         const totalExpense= +req.user.totalExpense+ +exp.amount;
+         req.user.totalExpense= totalExpense;
+         req.user.save().then((res) => {
+            console.log("total expense",totalExpense);
+            console.log("done",res);
+         }).catch((err) => {
+            console.log("error",err);
+         })
     })
     // req.user.createExpense(expense).then(async (response) => {
     //     const  total_expense= +req.user.totalExpense+ +amount;
@@ -109,20 +123,27 @@ router.post('/dailyExpense',middleware,async(req,res)=>{
 
 router.get('/getExpense',middleware,(req,res) => {
     console.log("user")
-    console.log(req.user)
-    req.user.getExpenses().then((response)=>{ return res.json({response 
-        , isPremiumUser : req.user.isPremiumUser}
-        )}).catch((err) => {
+    // console.log(req.user)
+    let ifPremiumUser=false;
+    Expense.getExpense(userId).then((response)=>{ 
+        User.findId(userId).then((user) => {
+            ifPremiumUser=user.isPremiumUser;
+        }).catch((notUser) => {
+            ifPremiumUser=false;
+        })
+        return res.json({response,isPremiumUser : ifPremiumUser}
+        )})
+        .catch((err) => {
         console.log(err)
     })
 })
 
 
 router.delete('/delete/:id',middleware,async(req,res) => {
-    const expense_amount= await Expense.findAll({where:{id:req.params.id}});
-    const user_totalExpense= await User.findAll({where:{id:req.params.id}})
-    user_totalExpense.totalExpense= user_totalExpense.totalExpense-expense_amount.amount; 
-    Expense.destroy({where:{id:req.params.id}})
+    const expenseAmount= await Expense.getExpense(req.params.id);  // ok
+    const userTotalExpense= await User.findOne(req.params.id);   //ok
+    userTotalExpense.totalExpense= userTotalExpense.totalExpense-expenseAmount.amount; 
+    Expense.destroy(req.params.id)                                   //  ok
     .then((response) =>{
         res.json({success: true, message:"deleted ->  ",response})})
     .catch((err) => { console.log(err) });
@@ -144,7 +165,8 @@ router.get('/premiumMembership',middleware,async(req, res) => {
         console.log("order",order);         
         // if(err){
         //         console.log(err);
-        //     }
+         
+        // }
 
         //console.log(req.user)
        
@@ -283,11 +305,12 @@ router.post('/get-expense',middleware,async(req, res)=>{
         const page = +req.query.page || 1
         const items = +req.body.items || 5
         console.log(items)
-        const exp =  req.user.getExpenses({
-            offset: (page - 1) * items,
-            limit: items
-        })
-        const totalExp =  req.user.countExpenses()
+        const exp =  Expense.getExpense(req.user._id,
+            offset= (page - 1) * items,
+            limit= items
+        )
+        const totalExp = await Expense.countExpenses(req.user._id);
+        console.log("line 313 of router",totalExp);
         const [expenses ,totalExpenses ] = await Promise.all([exp , totalExp])
         return res.json({ expenses, totalExpenses })
     } catch (e) {

@@ -7,9 +7,9 @@ const razor_pay=document.getElementById('razor')
 
 window.addEventListener('load',async () => {   ///////NOT WORKING  ///////NOT WORKING
     const token= localStorage.getItem('token');
-    const all_expense= await axios.get('http://localhost:4000/user/getExpense',{headers: {'Authorization': token}});
-    console.log("all_expenses",all_expense);
-    if(all_expense.data.isPremiumUser){
+    const allExpense= await axios.get('http://localhost:4000/user/getExpense',{headers: {'Authorization': token}});
+    console.log("all_expenses",allExpense);
+    if(allExpense.data.isPremiumUser){
         show_leaderBoard.classList.remove('hide')
         razor_pay.classList.add('hide')
     }
@@ -48,7 +48,7 @@ async function renderElements() {
     if (localStorage.getItem('token') == undefined)
         window.location = "../login.html"
 
-    console.log(localStorage.getItem("isPremiumUser"))
+    console.log("is",localStorage.getItem("isPremiumUser"))
 
     // axiosInstance.setHeaders({});
     const ITEMS_PER_PAGE = +localStorage.getItem('totalItems') || 5
@@ -57,7 +57,7 @@ async function renderElements() {
     let result = await axios.post('http://localhost:4000/user/get-expense' , {items : ITEMS_PER_PAGE} , {headers :{
         'Authorization' : localStorage.getItem('token')
     }})
-    console.log(result)
+    console.log("line 60 of daily_expense",result)
     if(ITEMS_PER_PAGE > result.data.totalExpenses){
         console.log(result.data.totalExpenses)
         document.getElementById('next').classList.add('hide')
@@ -65,7 +65,7 @@ async function renderElements() {
         document.getElementById('next').classList.remove('hide')
         console.log(result.data.totalExpenses)
     }
-    let users = result.data.expenses;
+    let users = result.data.totalExpenses;   //initially it was written expense and then I relaced expense by totalExpenses after console log of result in line no.60
     ul.innerHTML = ``
     users.forEach((value) => {
         displayExpense(value)

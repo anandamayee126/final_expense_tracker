@@ -12,5 +12,23 @@
 //         defaultValue: true
 //     }
 // })
+const getDb= require('../utils/db').getDb;
+const mongo= require('mongodb');
+class FP{
+  constructor(id,isActive){
+    this.userId=id;
+    this.isActive=isActive;
+  }
+  save(){
+    const db= getDb();
+    return db.collection('fp').insertOne(this).then((result) =>{
+        console.log("line 25 of fp model",result);
+        return result;
+    }).catch((err) =>{
+        console.log(err);
+    })
 
-// module.exports= FP;
+  }
+
+}
+module.exports= FP;

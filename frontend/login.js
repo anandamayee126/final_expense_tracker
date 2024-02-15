@@ -21,12 +21,12 @@ async function checkUser(e){
        localStorage.setItem('token',login.data.token);
         window.location="./Expense/daily_expense.html"
     }
-    else
-    {
-        const p = document.getElementById('Incorrect_password')
-        p.classList.remove('hide');
-        // window.location="login.html";
-    }
+    // else
+    // {
+    //     const p = document.getElementById('Incorrect_password')
+    //     p.classList.remove('hide');
+    //     // window.location="login.html";
+    // }
     
     
 }
