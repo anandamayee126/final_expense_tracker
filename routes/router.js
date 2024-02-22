@@ -1,18 +1,18 @@
-const express= require('express');
+import express from 'express';
 const router= express.Router();
-const User= require('../models/user');
-const Order = require('../models/order');
-const bcrypt = require('bcrypt');
-const Expense = require('../models/expense');
-const jwt= require('jsonwebtoken');
-const middleware= require('../middlewares/auth');
-const Razorpay= require('razorpay');
-const Mongoose= require('mongoose');
+import {User} from '../models/user.js';
+import {Order} from '../models/order.js';
+import bcrypt from 'bcrypt';
+import {Expense} from '../models/expense.js';
+import jwt from 'jsonwebtoken';
+import middleware from '../middlewares/auth.js';
+import Razorpay from 'razorpay';
+import Mongoose from 'mongoose';
 
-var Brevo = require('@getbrevo/brevo');
-// const Sbi= require('sib-api-v3-sdk');
-const dot_env= require('dotenv');
-const FP = require('../models/forgetPassword');
+import Brevo from '@getbrevo/brevo';
+// const Sbi= from('sib-api-v3-sdk');
+import dot_env from 'dotenv';
+import {FP} from '../models/forgetPassword.js';
 dot_env.config();
 
 
@@ -22,14 +22,10 @@ router.post('/signup',async(req,res) => {
     const email= req.body.email;
     const password= req.body.password;
 
-    // const user= new User(name,email,password); 
-    // user.save().then((res) => {                              // ok
-    //     console.log(res);
-    // }).catch((err) => {
-    //     console.log(err);
-    // })
-
-    const exist= await User.findOne(email);    
+    // const user= new User({name,email,password}); 
+    // await user.save();
+    // return user;
+    const exist= await User.find({email:email});    
     console.log("line 33")                  //ok
     console.log(exist)
     if(exist){
@@ -42,13 +38,9 @@ router.post('/signup',async(req,res) => {
         console.log(err);
         // const random = Ma()
         // console.log(random)
-        const newUser= new User(name,email,hash,false,0);
+        const newUser= new User({name:name,email:email,password:hash,ispremiumUser:false,totalExpense:0});
         console.log(newUser)    
-        newUser.save().then((res) => {                              // ok
-                console.log(res);
-            }).catch((err) => {
-                console.log(err);
-            })                                                      //ok
+        await newUser.save();                                        //ok
        // userId=newUser.id;
         console.log("New user created",newUser);                          
         res.json({success: true,message:'new user registered'});
@@ -66,8 +58,8 @@ router.post('/login',async(req,res)=>{
     const email= req.body.email;
     const password= req.body.password;
 
-    const exist_email= await User.findOne(email);         //ok
-    console.log("line 70 of router",exist_email.id);
+    const exist_email= await User.find({email:email});         //ok
+    console.log("line 70 of router",exist_email[0]._id);
     
     if(exist_email==null){
         res.json({success:false, status:404, message:"User not found .... Please signup first"});
@@ -97,16 +89,15 @@ router.post('/dailyExpense',middleware,async(req,res)=>{
     userId= req.user._id;
     console.log("line 97 of router",userId);
     const expense= new Expense(req.user._id,date,amount,description,category);
-    expense.save().then((exp) => {
-         const totalExpense= +req.user.totalExpense+ +exp.amount;
-         req.user.totalExpense= totalExpense;
-         req.user.save().then((res) => {
-            console.log("total expense",totalExpense);
-            console.log("done",res);
-         }).catch((err) => {
-            console.log("error",err);
-         })
-    })
+    const exp= await expense.save();
+    const expAmount= await Expense.getExpByUser(userId);
+    const user= await User.findId(userId);
+    console.log(user)
+    user.totalExpense= parseInt(user.totalExpense) + parseInt(amount);
+    const update= await User.updateExpense(userId,user.totalExpense)
+    console.log("Now total amount is: ",user.totalExpense)
+})
+    
     // req.user.createExpense(expense).then(async (response) => {
     //     const  total_expense= +req.user.totalExpense+ +amount;
     //     req.user.totalExpense=total_expense;
@@ -119,7 +110,7 @@ router.post('/dailyExpense',middleware,async(req,res)=>{
     //         console.error(err)
     // });
     // const 
-})
+
 
 router.get('/getExpense',middleware,(req,res) => {
     console.log("user")
@@ -139,10 +130,15 @@ router.get('/getExpense',middleware,(req,res) => {
 })
 
 
-router.delete('/delete/:id',middleware,async(req,res) => {
-    const expenseAmount= await Expense.getExpense(req.params.id);  // ok
-    const userTotalExpense= await User.findOne(req.params.id);   //ok
-    userTotalExpense.totalExpense= userTotalExpense.totalExpense-expenseAmount.amount; 
+router.delete('/delete/:id',middleware,async(req,res) => {      //totalexpense bar hoche na tai not working
+
+    const expenseAmount= await Expense.getExpenseOne(req.params.id);  // ok
+    console.log("?",expenseAmount)
+    const userTotalExpense= await User.findId(expenseAmount[0].userId);   //ok
+    console.log("param.id",userTotalExpense);
+    userTotalExpense.totalExpense= parseInt(userTotalExpense.totalExpense)-parseInt(expenseAmount[0].amount); 
+    const update= await User.updateExpense(req.user._id,userTotalExpense.totalExpense)
+    console.log("total expense after deletion is",userTotalExpense.totalExpense);
     Expense.destroy(req.params.id)                                   //  ok
     .then((response) =>{
         res.json({success: true, message:"deleted ->  ",response})})
@@ -161,7 +157,7 @@ router.get('/premiumMembership',middleware,async(req, res) => {
             amount : 2500,
             currency:"INR"
         };
-        const order = await rzp.orders.create(options)   
+        const order = await rzp.orders.create(options)  
         console.log("order",order);         
         // if(err){
         //         console.log(err);
@@ -170,7 +166,8 @@ router.get('/premiumMembership',middleware,async(req, res) => {
 
         //console.log(req.user)
        
-       await req.user.createOrder({order_id : order.id , status :"PENDING"})
+       const newOrder= new Order(req.user._id,null,"PENDING");
+       const create= await newOrder.save();
     //    await Order.create({order_id : order.id , status :"PENDING",userId :userId}) //
         return res.status(201).json({order,key_id:rzp.key_id})
          
@@ -197,20 +194,17 @@ router.post('/updateTransaction',middleware,async(req,res)=>{
         
         console.log("req.body",req.body);
         const {payment_id,order_id} = req.body;
-        const order= await Order.findOne({where:{order_id:order_id}})
-            const promise1=order.update({payment_id:payment_id,status:"successful"})
-            const promise2= req.user.update({isPremiumUser:true})
-            const token= tokenCreation(req.user.id,true);
-            Promise.all([promise1, promise2]).then(()=>{
-                return res.json({success:true,token,isPremiumUser:true,message:"Transaction successfull"});
-            }).catch(err=>{
-                console.log(err);
-            })
-            await order.save();
-            await req.user.save();
-            
-           // const decodedToken= parseJwt(token)
-            
+        const order= await Order.findOne(order_id);
+        userId= req.user._id;
+
+        const promise1=Order.update(userId,payment_id,"successful");   //problem in this line .... db.collection(...).update is not a function ... check order model
+        const promise2= User.updatePremium(userId,true);
+        const token= tokenCreation(req.user._id,true);
+        Promise.all([promise1, promise2]).then(()=>{
+            return res.json({success:true,token,isPremiumUser:true,message:"Transaction successfull"});
+        }).catch(err=>{
+            console.log(err);
+        })
     }
     catch(err){
         console.error(err);
@@ -222,7 +216,7 @@ router.post('/forgetPassword',async(req,res)=>{
     try{
         const rec_email = req.body.email;
         console.log(rec_email);
-        const user = await User.findOne({where : {email : rec_email}})
+        const user = await User.findOne(rec_email);
         console.log(user)
         console.log(user== null)
         if(user === null)
@@ -239,7 +233,8 @@ router.post('/forgetPassword',async(req,res)=>{
         const reciever = [{
             "email":rec_email
         }]
-        const link = await user.createFp();
+        const newFp = new FP(req.user._id,false);
+        const link= await newFp.save();
         console.log("link",link);
         const response = await apiInstance.sendTransacEmail({
             sender,
@@ -304,15 +299,16 @@ router.post('/get-expense',middleware,async(req, res)=>{
     try {
         const page = +req.query.page || 1
         const items = +req.body.items || 5
-        console.log(items)
-        const exp =  Expense.getExpense(req.user._id,
+        console.log("max no. of items per page",items);
+        const exp = await  Expense.getExpByUser(req.user._id,
             offset= (page - 1) * items,
             limit= items
         )
         const totalExp = await Expense.countExpenses(req.user._id);
         console.log("line 313 of router",totalExp);
-        const [expenses ,totalExpenses ] = await Promise.all([exp , totalExp])
-        return res.json({ expenses, totalExpenses })
+        console.log("all expenses are: ",exp)
+        // const [expenses ,totalExpenses ] = await Promise.all([exp , totalExp])
+        return res.json({expenses:exp});
     } catch (e) {
         console.log(e)
         return res.status(500).json({ success: false, msg: "Internal server error" })
@@ -320,5 +316,5 @@ router.post('/get-expense',middleware,async(req, res)=>{
 })
 
 
-module.exports= router;
+export default router;
 

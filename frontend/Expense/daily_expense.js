@@ -12,6 +12,11 @@ window.addEventListener('load',async () => {   ///////NOT WORKING  ///////NOT WO
     if(allExpense.data.isPremiumUser){
         show_leaderBoard.classList.remove('hide')
         razor_pay.classList.add('hide')
+        localStorage.setItem('isPremiumUser' ,true)
+    }
+    else{
+        localStorage.setItem('isPremiumUser' ,false);
+
     }
      renderElements()
     // all_expense.data.response.forEach((element) => {
@@ -31,6 +36,7 @@ function addDailyExpense(e){
     const date= e.target.date.value;
     date_val= date;
     const amount=e.target.amount.value;
+
     const description= e.target.description.value;
     const category= e.target.category.value;
 
@@ -48,7 +54,7 @@ async function renderElements() {
     if (localStorage.getItem('token') == undefined)
         window.location = "../login.html"
 
-    console.log("is",localStorage.getItem("isPremiumUser"))
+    console.log("is",localStorage.getItem("isPremiumUser")?true:false)
 
     // axiosInstance.setHeaders({});
     const ITEMS_PER_PAGE = +localStorage.getItem('totalItems') || 5
@@ -63,12 +69,12 @@ async function renderElements() {
         document.getElementById('next').classList.add('hide')
     }else{
         document.getElementById('next').classList.remove('hide')
-        console.log(result.data.totalExpenses)
+        // console.log(result.data.totalExpenses)
     }
-    let users = result.data.totalExpenses;   //initially it was written expense and then I relaced expense by totalExpenses after console log of result in line no.60
+    let users = result.data.expenses;   //initially it was written expense and then I relaced expense by totalExpenses after console log of result in line no.60
     ul.innerHTML = ``
     users.forEach((value) => {
-        displayExpense(value)
+        displayExpense(value);
         // ul.appendChild(li)
 })
 }
@@ -93,9 +99,10 @@ function displayExpense(expense){
     const button= document.createElement('button');
     button.textContent = "DELETE";
     const token= localStorage.getItem('token');
+    console.log("expense id",expense._id);
     button.onclick  =()=>{
 
-        axios.delete('http://localhost:4000/user/delete/' + expense.id,{headers: {'Authorization': token}})
+        axios.delete('http://localhost:4000/user/delete/' + expense._id,{headers: {'Authorization': token}})
         .then((res)=>{
             if(res.status == 200)
                 ul.removeChild(li)
@@ -147,6 +154,7 @@ razor_pay.onclick= async function(e){
             console.log("hiiii");
             show_leaderBoard.classList.remove('hide')
             razor_pay.classList.add('hide')
+            localStorage.setItem('isPremiumUser' , "true")
             showLeaderboard();
         }
         },// ispremium : true / false

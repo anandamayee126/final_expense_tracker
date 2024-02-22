@@ -1,17 +1,20 @@
-const express= require('express');
+import express from 'express';
+import mongoose from 'mongoose';
+let mongoConnect= await mongoose.connect('mongodb+srv://andy:JuOupNWAcOMRmnAP@exp.1rbyylg.mongodb.net/');
+console.log("connect",mongoConnect);
+
 const app = express();
-const cors= require('cors');
-const router= require('./routes/router.js');
-const User = require('./models/user.js');
-const Expense= require('./models/expense.js');
-const mongoConnect= require('./utils/db.js').mongoConnect;
-const Order= require('./models/order.js');
-const premium= require('./routes/premium.js');
-const FP= require('./models/forgetPassword.js');
-// const helmet= require('helmet');
-// const morgan= require('morgan');
-// const fs= require('fs');
-// const path= require('path');
+import cors from 'cors';
+import router from './routes/router.js';
+import {User} from './models/user.js';
+import {Expense} from './models/expense.js';
+import {Order} from './models/order.js';
+import premium from './routes/premium.js';
+import {FP} from './models/forgetPassword.js';
+// const helmet= from('helmet');
+// const morgan= from('morgan');
+// const fs= from('fs');
+// const path= from('path');
 
 app.use(cors());
 app.use(express.json());
@@ -49,6 +52,6 @@ app.use('/premium',premium)
 //     console.error(err)
 // })
 
-mongoConnect(() =>{
-    app.listen(4000);
+app.listen(4000,()=>{
+    console.log("mongoose connected");
 })

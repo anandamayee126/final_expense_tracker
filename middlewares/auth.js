@@ -1,7 +1,7 @@
-const jwt= require('jsonwebtoken');
-const User= require('../models/user');
+import jwt from 'jsonwebtoken';
+import {User} from '../models/user.js';
 
-const authenticate= async(req,res,next) => {
+const middleware= async(req,res,next) => {
     try{
         const token= req.header('Authorization');
         const user= jwt.verify(token,'secretKey')
@@ -26,4 +26,4 @@ const authenticate= async(req,res,next) => {
         res.status(403).json({success: false});
     } 
 }
-module.exports= authenticate;
+export default middleware;

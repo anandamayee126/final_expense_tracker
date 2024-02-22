@@ -3,8 +3,8 @@ const sgMail = require('@sendgrid/mail');
 // import {sgMail} from '@sendgrid/mail';
 const bcrypt = require('bcrypt');
 
-const User= require('../models/user');
-const Forgotpassword = require('../models/forgotpassword');
+import {User} from '../models/user.js';
+import {FP} from '../models/forgotpassword.js';
 
 const forgotpassword = async (req,res) => {
     try {
@@ -12,7 +12,7 @@ const forgotpassword = async (req,res) => {
         const user = await User.findOne({where : { email }});
         if(user){
             const id = uuid.v4();
-            user.createForgotpassword({ id , active: true })
+            user.createFP({ id , active: true })
                 .catch((err) => {
                     console.log(err)
                 })
@@ -52,7 +52,7 @@ const forgotpassword = async (req,res) => {
 
 const resetpassword = (req,res) => {
     const id =  req.params.id;
-    Forgotpassword.findOne({ where : { id }}).then((forgotpasswordrequest) => {
+    FP.findOne({ where : { id }}).then((forgotpasswordrequest) => {
         if(forgotpasswordrequest){
             forgotpasswordrequest.update({ active: false});
             res.status(200).send(`<html>
@@ -79,7 +79,7 @@ const updatepassword = (req,res) => {
     try {
         const { newpassword } = req.query;
         const { resetpasswordid } = req.params;
-        Forgotpassword.findOne({ where : { id: resetpasswordid }}).then((resetpasswordrequest) => {
+        FP.findOne({ where : { id: resetpasswordid }}).then((resetpasswordrequest) => {
             User.findOne({where: { id : resetpasswordrequest.userId}}).then((user) => {
                 // console.log('userDetails', user)
                 if(user) {

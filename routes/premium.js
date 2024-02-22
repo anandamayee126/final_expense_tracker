@@ -1,13 +1,13 @@
-const express= require('express');
+import express from 'express';
 const premium= express.Router();
-const middleware= require('../middlewares/auth');
-const User= require('../models/user');
-const Expense= require('../models/expense');
-const sequelize= require('sequelize');
-const AWS= require('aws-sdk');
-const dot_env= require('dotenv');
+import middleware from '../middlewares/auth.js';
+import {User} from '../models/user.js';
+import {Expense} from '../models/expense.js';
+import sequelize from 'sequelize';
+import AWS from 'aws-sdk';
+import dot_env from 'dotenv';
 dot_env.config();
-const {Op} = require('sequelize')
+import {Op} from 'sequelize';
 
 
 
@@ -158,4 +158,4 @@ premium.post('/downloadExpense',middleware, async(req,res) => {
         }
     })
 
-module.exports= premium;
+export default premium;
