@@ -13,9 +13,11 @@ window.addEventListener('load',async () => {   ///////NOT WORKING  ///////NOT WO
         show_leaderBoard.classList.remove('hide')
         razor_pay.classList.add('hide')
         localStorage.setItem('isPremiumUser' ,true)
+        console.log("1")
     }
     else{
         localStorage.setItem('isPremiumUser' ,false);
+        console.log("2")
 
     }
      renderElements()
@@ -53,8 +55,6 @@ function addDailyExpense(e){
 async function renderElements() {
     if (localStorage.getItem('token') == undefined)
         window.location = "../login.html"
-
-    console.log("is",localStorage.getItem("isPremiumUser")?true:false)
 
     // axiosInstance.setHeaders({});
     const ITEMS_PER_PAGE = +localStorage.getItem('totalItems') || 5
@@ -138,7 +138,7 @@ razor_pay.onclick= async function(e){
     console.log("response",response);
     var options={
         "key":response.data.key_id,
-        "order_id":response.data.order.id,
+        "orderId":response.data.order.id,
         "handler":async function(response){
            const result= await axios.post('http://localhost:4000/user/updateTransaction',{
             order_id:options.order_id,

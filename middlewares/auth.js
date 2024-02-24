@@ -7,17 +7,8 @@ const middleware= async(req,res,next) => {
         const user= jwt.verify(token,'secretKey')
         console.log(user)
         console.log("line 9 auth")
-        // console.log("line 8 of auth",user.userId);
-        // User.findId(user.userId).then((user) => {
-
-        //     // console.log("line 9 of auth",user);
-        //     // req.user = user;
-        //     next();
-        // }).catch((err) => { console.log(err)
-        // })
-        // req.userId = user.userId;
-        req.user = await User.findId(user.userId)
-        console.log(req.user)
+        req.user = await User.find({_id:user.userId});
+        console.log("req.user",req.user)
         next();
         
     }

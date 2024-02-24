@@ -20,15 +20,12 @@ let userId=0;
 router.post('/signup',async(req,res) => {
     const name= req.body.name;
     const email= req.body.email;
+    console.log("email",email);
     const password= req.body.password;
-
-    // const user= new User({name,email,password}); 
-    // await user.save();
-    // return user;
     const exist= await User.find({email:email});    
     console.log("line 33")                  //ok
     console.log(exist)
-    if(exist){
+    if(exist==[]){
         res.json({success: false,message:'already exists'});
     }
     else{
@@ -36,17 +33,12 @@ router.post('/signup',async(req,res) => {
         bcrypt.hash(password, saltRounds,async(err,hash) => {
             
         console.log(err);
-        // const random = Ma()
-        // console.log(random)
         const newUser= new User({name:name,email:email,password:hash,ispremiumUser:false,totalExpense:0});
-        console.log(newUser)    
-        await newUser.save();                                        //ok
-       // userId=newUser.id;
-        console.log("New user created",newUser);                          
+        const newuserCreated= await newUser.save(); 
+        console.log("new user",newuserCreated) ;                                       //ok                      
         res.json({success: true,message:'new user registered'});
        })
     }
-
 })
 
 function tokenCreation(userId,isPremiumUser)
@@ -59,14 +51,14 @@ router.post('/login',async(req,res)=>{
     const password= req.body.password;
 
     const exist_email= await User.find({email:email});         //ok
-    console.log("line 70 of router",exist_email[0]._id);
+    console.log("line 70 of router",exist_email[0]);
     
     if(exist_email==null){
         res.json({success:false, status:404, message:"User not found .... Please signup first"});
     }
     else{
-        userId= exist_email._id;
-        bcrypt.compare(password,exist_email.password,(err,result)=>{         //error in this line
+        userId= exist_email[0]._id;
+        bcrypt.compare(password,exist_email[0].password,(err,result)=>{        
             if(err){
                 res.json({success:false,message:"Something went wrong"});
             }
@@ -79,23 +71,23 @@ router.post('/login',async(req,res)=>{
         })
     }
 })
-//upto this working fine.
+//upto this working fine.  
 
 router.post('/dailyExpense',middleware,async(req,res)=>{
     const date=req.body.date;
     const amount= req.body.amount;
     const description = req.body.description;
     const category= req.body.category;
-    userId= req.user._id;
+    userId= req.user[0]._id;
     console.log("line 97 of router",userId);
-    const expense= new Expense(req.user._id,date,amount,description,category);
+    const expense= new Expense({userId:req.user[0]._id,date:date,amount:amount,description:description,category:category});
     const exp= await expense.save();
-    const expAmount= await Expense.getExpByUser(userId);
-    const user= await User.findId(userId);
-    console.log(user)
-    user.totalExpense= parseInt(user.totalExpense) + parseInt(amount);
-    const update= await User.updateExpense(userId,user.totalExpense)
-    console.log("Now total amount is: ",user.totalExpense)
+    const expAmount= await Expense.find({userId:userId});
+    const user= await User.find({_id:userId});
+    console.log("user",user[0])
+    user[0].totalExpense= parseInt(user[0].totalExpense) + parseInt(amount);
+    const update= await User.updateOne({_id:userId,totalExpense:user[0].totalExpense});
+    console.log("Now total amount is: ",user[0].totalExpense);
 })
     
     // req.user.createExpense(expense).then(async (response) => {
@@ -116,8 +108,9 @@ router.get('/getExpense',middleware,(req,res) => {
     console.log("user")
     // console.log(req.user)
     let ifPremiumUser=false;
-    Expense.getExpense(userId).then((response)=>{ 
-        User.findId(userId).then((user) => {
+    userId= req.user[0]._id;
+    Expense.find({userId:userId}).then((response)=>{ 
+        User.find({_id:userId}).then((user) => {
             ifPremiumUser=user.isPremiumUser;
         }).catch((notUser) => {
             ifPremiumUser=false;
@@ -132,14 +125,14 @@ router.get('/getExpense',middleware,(req,res) => {
 
 router.delete('/delete/:id',middleware,async(req,res) => {      //totalexpense bar hoche na tai not working
 
-    const expenseAmount= await Expense.getExpenseOne(req.params.id);  // ok
+    const expenseAmount= await Expense.find({_id:req.params.id});  // ok
     console.log("?",expenseAmount)
-    const userTotalExpense= await User.findId(expenseAmount[0].userId);   //ok
-    console.log("param.id",userTotalExpense);
+    const userTotalExpense= await User.find({_id:expenseAmount[0].userId});   //ok
+    console.log("param.id",userTotalExpense[0].totalExpense);
     userTotalExpense.totalExpense= parseInt(userTotalExpense.totalExpense)-parseInt(expenseAmount[0].amount); 
-    const update= await User.updateExpense(req.user._id,userTotalExpense.totalExpense)
-    console.log("total expense after deletion is",userTotalExpense.totalExpense);
-    Expense.destroy(req.params.id)                                   //  ok
+    const update= await User.updateOne({_id:req.user._id,totalExpense:userTotalExpense.totalExpense});
+    console.log("total expense after deletion is",userTotalExpense[0].totalExpense);
+    Expense.deleteOne({_id:req.params.id})                                 //  ok
     .then((response) =>{
         res.json({success: true, message:"deleted ->  ",response})})
     .catch((err) => { console.log(err) });
@@ -166,8 +159,9 @@ router.get('/premiumMembership',middleware,async(req, res) => {
 
         //console.log(req.user)
        
-       const newOrder= new Order(req.user._id,null,"PENDING");
+       const newOrder= new Order({userId:req.user._id,paymentId:null,status:"PENDING"});
        const create= await newOrder.save();
+       console.log("order created: ",create);
     //    await Order.create({order_id : order.id , status :"PENDING",userId :userId}) //
         return res.status(201).json({order,key_id:rzp.key_id})
          
@@ -193,12 +187,11 @@ router.post('/updateTransaction',middleware,async(req,res)=>{
     try{
         
         console.log("req.body",req.body);
-        const {payment_id,order_id} = req.body;
-        const order= await Order.findOne(order_id);
+        const {paymentId,orderId} = req.body;
+        const order= await Order.find({_id:orderId});
         userId= req.user._id;
-
-        const promise1=Order.update(userId,payment_id,"successful");   //problem in this line .... db.collection(...).update is not a function ... check order model
-        const promise2= User.updatePremium(userId,true);
+        const promise1=Order.updateOne({userId:userId,paymentId:paymentId,status:"successful"});   //problem in this line .... db.collection(...).update is not a function ... check order model
+        const promise2= User.updateOne({_id:userId,isPremiumUser:true});
         const token= tokenCreation(req.user._id,true);
         Promise.all([promise1, promise2]).then(()=>{
             return res.json({success:true,token,isPremiumUser:true,message:"Transaction successfull"});
@@ -216,7 +209,7 @@ router.post('/forgetPassword',async(req,res)=>{
     try{
         const rec_email = req.body.email;
         console.log(rec_email);
-        const user = await User.findOne(rec_email);
+        const user = await User.find({email:rec_email});
         console.log(user)
         console.log(user== null)
         if(user === null)
@@ -233,7 +226,7 @@ router.post('/forgetPassword',async(req,res)=>{
         const reciever = [{
             "email":rec_email
         }]
-        const newFp = new FP(req.user._id,false);
+        const newFp = new FP({userId:req.user._id,isActive:false});
         const link= await newFp.save();
         console.log("link",link);
         const response = await apiInstance.sendTransacEmail({
@@ -243,8 +236,9 @@ router.post('/forgetPassword',async(req,res)=>{
             textContent: 'hello , this is a text content',
             htmlContent: '<p>Click the link to reset your password</p>'+
             `<a href="http://127.0.0.1:5500/Password/reset_password.html?reset=${link.id}">click here</a>`
-        })
-            await FP.update({isActive:true},{where:{id: link.id}});
+        }) 
+            
+            // await FP.updateOne({userId:isActive:true},{where:{id: link.id}});
             return res.json({success : true , response})
 
         }catch(e){
@@ -253,7 +247,7 @@ router.post('/forgetPassword',async(req,res)=>{
         }
 })
 
-router.post('/update-password/:resetId',middleware,async(req,res) => {
+router.post('/update-password/:resetId',middleware,async(req,res) => {   //left
     try{
         const id = req.params.resetId;
         const newPassword =req.body.newPassword;
@@ -285,7 +279,7 @@ router.post('/update-password/:resetId',middleware,async(req,res) => {
 router.get('/check-password-link/:resetId',async(req, res) => {
     try{
         const id=req.params.resetId;
-        const find=await FP.findOne({where:{id:id}});
+        const find=await FP.find({_id:id});
         return res.json({isActive:find.isActive});
     }
     catch(err) {
@@ -300,14 +294,12 @@ router.post('/get-expense',middleware,async(req, res)=>{
         const page = +req.query.page || 1
         const items = +req.body.items || 5
         console.log("max no. of items per page",items);
-        const exp = await  Expense.getExpByUser(req.user._id,
-            offset= (page - 1) * items,
-            limit= items
-        )
-        const totalExp = await Expense.countExpenses(req.user._id);
-        console.log("line 313 of router",totalExp);
+        const exp = await  Expense.find({userId:req.user[0]._id}).skip((page - 1) * items).limit(items);
+        const totalExp = await Expense.countDocuments({userId:req.user[0]._id});
+        console.log("298",totalExp);
+        
         console.log("all expenses are: ",exp)
-        // const [expenses ,totalExpenses ] = await Promise.all([exp , totalExp])
+        const [expenses ,totalExpenses ] = await Promise.all([exp , totalExp])
         return res.json({expenses:exp});
     } catch (e) {
         console.log(e)

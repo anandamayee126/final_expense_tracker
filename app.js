@@ -1,7 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 let mongoConnect= await mongoose.connect('mongodb+srv://andy:JuOupNWAcOMRmnAP@exp.1rbyylg.mongodb.net/');
-console.log("connect",mongoConnect);
+// console.log("connect",mongoConnect);
 
 const app = express();
 import cors from 'cors';

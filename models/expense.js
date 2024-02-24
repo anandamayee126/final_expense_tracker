@@ -121,7 +121,10 @@ import { ObjectId } from 'mongodb';
 import mongoose from 'mongoose';
 // mongoose.connect('mongodb+srv://andy:JuOupNWAcOMRmnAP@exp.1rbyylg.mongodb.net/')
 const ExpenseSchema= new mongoose.Schema({
-    userId:ObjectId,
+    userId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"user"
+    },
     date:Date,
     amount:Number,
     description:String,

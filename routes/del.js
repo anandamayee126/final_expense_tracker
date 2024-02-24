@@ -9,14 +9,11 @@ import {FP} from '../models/forgotpassword.js';
 const forgotpassword = async (req,res) => {
     try {
         const { email } =  req.body;
-        const user = await User.findOne({where : { email }});
+        const user = await User.find({email:email });
         if(user){
-            const id = uuid.v4();
-            user.createFP({ id , active: true })
-                .catch((err) => {
-                    console.log(err)
-                })
-
+            const id = uuid.v4();   // mongoose automatically takes _id so wt to do?
+            const fp= new FP({userId:req.user._id , isActive: true })
+            await fp.save();
             sgMail.setApiKey(process.env.SENGRID_API_KEY)
             const msg = {
                 to: email, // Change to your recipient
@@ -52,7 +49,7 @@ const forgotpassword = async (req,res) => {
 
 const resetpassword = (req,res) => {
     const id =  req.params.id;
-    FP.findOne({ where : { id }}).then((forgotpasswordrequest) => {
+    FP.find({_id:id}).then((forgotpasswordrequest) => {
         if(forgotpasswordrequest){
             forgotpasswordrequest.update({ active: false});
             res.status(200).send(`<html>
@@ -79,7 +76,7 @@ const updatepassword = (req,res) => {
     try {
         const { newpassword } = req.query;
         const { resetpasswordid } = req.params;
-        FP.findOne({ where : { id: resetpasswordid }}).then((resetpasswordrequest) => {
+        FP.find({ where : { id: resetpasswordid }}).then((resetpasswordrequest) => {
             User.findOne({where: { id : resetpasswordrequest.userId}}).then((user) => {
                 // console.log('userDetails', user)
                 if(user) {
