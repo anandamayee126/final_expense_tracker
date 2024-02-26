@@ -9,7 +9,8 @@ window.addEventListener('load' , async()=>{
         alert("wrong link")
         location.href ='forgot-password.html'
     }
-    const res = await axios.get(`http://localhost:4000/user/check-password-link/${resetId}`)
+    const token= localStorage.getItem('token');
+    const res = await axios.get(`http://localhost:4000/user/check-password-link/${resetId}`,{headers: {'Authorization': token}})
     if(!res.data.isActive){
         alert("link expired get a new one")
         location.href ='forgotPassword.html'

@@ -33,9 +33,9 @@ router.post('/signup',async(req,res) => {
         bcrypt.hash(password, saltRounds,async(err,hash) => {
             
         console.log(err);
-        const newUser= new User({name:name,email:email,password:hash,ispremiumUser:false,totalExpense:0});
-        const newuserCreated= await newUser.save(); 
-        console.log("new user",newuserCreated) ;                                       //ok                      
+        const newUser= User.create({name:name,email:email,password:hash,isPremiumUser:false,totalExpense:0});
+        // const newuserCreated= await newUser.save(); 
+        console.log("new user",newUser);                                       //ok                      
         res.json({success: true,message:'new user registered'});
        })
     }
@@ -78,16 +78,16 @@ router.post('/dailyExpense',middleware,async(req,res)=>{
     const amount= req.body.amount;
     const description = req.body.description;
     const category= req.body.category;
-    userId= req.user[0]._id;
+    userId= req.user._id;
     console.log("line 97 of router",userId);
-    const expense= new Expense({userId:req.user[0]._id,date:date,amount:amount,description:description,category:category});
-    const exp= await expense.save();
+    const expense=Expense.create({userId:req.user._id,date:date,amount:amount,description:description,category:category});
+    // const exp= await expense.save();
     const expAmount= await Expense.find({userId:userId});
-    const user= await User.find({_id:userId});
-    console.log("user",user[0])
-    user[0].totalExpense= parseInt(user[0].totalExpense) + parseInt(amount);
-    const update= await User.updateOne({_id:userId,totalExpense:user[0].totalExpense});
-    console.log("Now total amount is: ",user[0].totalExpense);
+    const user= await User.findById(userId);
+    console.log("user 87",user)
+    const newTotalExpense= parseInt(user.totalExpense) + parseInt(amount);
+    const update= await User.findOneAndUpdate({_id:userId},{totalExpense:newTotalExpense},{new : true});
+    console.log("Now total amount is: ",user.totalExpense);
 })
     
     // req.user.createExpense(expense).then(async (response) => {
@@ -107,17 +107,15 @@ router.post('/dailyExpense',middleware,async(req,res)=>{
 router.get('/getExpense',middleware,(req,res) => {
     console.log("user")
     // console.log(req.user)
-    let ifPremiumUser=false;
-    userId= req.user[0]._id;
+    // let ifPremiumUser=false;
+    userId= req.user._id;
     Expense.find({userId:userId}).then((response)=>{ 
         User.find({_id:userId}).then((user) => {
-            ifPremiumUser=user.isPremiumUser;
-        }).catch((notUser) => {
-            ifPremiumUser=false;
-        })
-        return res.json({response,isPremiumUser : ifPremiumUser}
-        )})
-        .catch((err) => {
+            console.log("ifpremium",user[0].isPremiumUser);
+            return res.json({response,isPremiumUser:user[0].isPremiumUser})
+        }).catch((err) => {
+           console.log(err)})
+    }).catch((err) => {
         console.log(err)
     })
 })
@@ -125,15 +123,18 @@ router.get('/getExpense',middleware,(req,res) => {
 
 router.delete('/delete/:id',middleware,async(req,res) => {      //totalexpense bar hoche na tai not working
 
-    const expenseAmount= await Expense.find({_id:req.params.id});  // ok
+    const expenseAmount= await Expense.findById(req.params.id);  // ok
     console.log("?",expenseAmount)
-    const userTotalExpense= await User.find({_id:expenseAmount[0].userId});   //ok
-    console.log("param.id",userTotalExpense[0].totalExpense);
-    userTotalExpense.totalExpense= parseInt(userTotalExpense.totalExpense)-parseInt(expenseAmount[0].amount); 
-    const update= await User.updateOne({_id:req.user._id,totalExpense:userTotalExpense.totalExpense});
-    console.log("total expense after deletion is",userTotalExpense[0].totalExpense);
-    Expense.deleteOne({_id:req.params.id})                                 //  ok
+    const userTotalExpense= await User.findById(expenseAmount.userId);   //ok
+    console.log("param.id",userTotalExpense.totalExpense);
+    const newExpense= parseInt(userTotalExpense.totalExpense)-parseInt(expenseAmount.amount); 
+    // const update= await User.updateOne({_id:req.user._id,totalExpense:userTotalExpense.totalExpense});
+    console.log("total expense after deletion is",newExpense);
+    await User.updateOne({_id : req.user._id},{totalExpense:newExpense},{new : true});
+    Expense.deleteOne({_id:req.params.id})      
+                               //  ok
     .then((response) =>{
+        console.log("deleted");
         res.json({success: true, message:"deleted ->  ",response})})
     .catch((err) => { console.log(err) });
 })
@@ -159,9 +160,9 @@ router.get('/premiumMembership',middleware,async(req, res) => {
 
         //console.log(req.user)
        
-       const newOrder= new Order({userId:req.user._id,paymentId:null,status:"PENDING"});
-       const create= await newOrder.save();
-       console.log("order created: ",create);
+       const newOrder= Order.create({userId:req.user._id,paymentId:null,status:"PENDING", orderId : order.id});
+    //    const create= await newOrder.save();
+       console.log("order created: ",newOrder);
     //    await Order.create({order_id : order.id , status :"PENDING",userId :userId}) //
         return res.status(201).json({order,key_id:rzp.key_id})
          
@@ -188,16 +189,16 @@ router.post('/updateTransaction',middleware,async(req,res)=>{
         
         console.log("req.body",req.body);
         const {paymentId,orderId} = req.body;
-        const order= await Order.find({_id:orderId});
+        const order= await Order.findOne({orderId});
         userId= req.user._id;
-        const promise1=Order.updateOne({userId:userId,paymentId:paymentId,status:"successful"});   //problem in this line .... db.collection(...).update is not a function ... check order model
-        const promise2= User.updateOne({_id:userId,isPremiumUser:true});
+        order.paymentId=paymentId;
+        order.status="successful";
+        // const promise1=Order.updateOne({userId:userId,paymentId:paymentId,status:"successful"});   //problem in this line .... db.collection(...).update is not a function ... check order model
+        const updated=await User.findOneAndUpdate({_id:userId},{$set:{isPremiumUser:true}});
+        console.log("updated",updated);
         const token= tokenCreation(req.user._id,true);
-        Promise.all([promise1, promise2]).then(()=>{
-            return res.json({success:true,token,isPremiumUser:true,message:"Transaction successfull"});
-        }).catch(err=>{
-            console.log(err);
-        })
+        return res.json({success:true,message:updated,token,isPremiumUser:true,message:"Transaction successfull"});
+        
     }
     catch(err){
         console.error(err);
@@ -205,16 +206,19 @@ router.post('/updateTransaction',middleware,async(req,res)=>{
 })
 
 
-router.post('/forgetPassword',async(req,res)=>{
+router.post('/forgetPassword',middleware,async(req,res)=>{
     try{
         const rec_email = req.body.email;
         console.log(rec_email);
         const user = await User.find({email:rec_email});
         console.log(user)
-        console.log(user== null)
+        console.log(user[0]== null)
         if(user === null)
+        {
+            console.log("inside user === null");
              return res.status(404).json({success : false , msg :"Email not found"})
-
+        }
+        console.log("not inside user === null");
         var defaultClient = Brevo.ApiClient.instance;
         var apiKey = defaultClient.authentications['api-key'];
         apiKey.apiKey = process.env.API_KEY
@@ -226,16 +230,17 @@ router.post('/forgetPassword',async(req,res)=>{
         const reciever = [{
             "email":rec_email
         }]
-        const newFp = new FP({userId:req.user._id,isActive:false});
-        const link= await newFp.save();
-        console.log("link",link);
+        console.log("req.user._id",req.user._id);
+        const newFp = await FP.create({userId:req.user._id,isActive:false});
+        // const link= await newFp.save();
+        console.log("link",newFp);
         const response = await apiInstance.sendTransacEmail({
             sender,
             to : reciever,
             subject : 'testing',
             textContent: 'hello , this is a text content',
             htmlContent: '<p>Click the link to reset your password</p>'+
-            `<a href="http://127.0.0.1:5500/Password/reset_password.html?reset=${link.id}">click here</a>`
+            `<a href="http://127.0.0.1:5500/Password/reset_password.html?reset=${newFp._id}">click here</a>`
         }) 
             
             // await FP.updateOne({userId:isActive:true},{where:{id: link.id}});
@@ -252,17 +257,17 @@ router.post('/update-password/:resetId',middleware,async(req,res) => {   //left
         const id = req.params.resetId;
         const newPassword =req.body.newPassword;
     
-        const resetUser= await FP.findByPk(id);
+        const resetUser= await FP.findById(id);
         const user_id= resetUser.userId;
         console.log("user_id",user_id);
         if(!(resetUser.isActive)) {
             return res.json({success : false ,msg :"Link has expired... Please try again"});
         }
-        const user= resetUser.getUser();
+        // const user= resetUser.getUser();
         const hash=await bcrypt.hash(newPassword,10);
 
-        await User.update({password : hash},{where:{id:user_id}});
-        await FP.update({isActive : false},{where:{id:id}});
+        await User.findOneAndUpdate({_id:user_id},{$set: {password : hash}});
+        await FP.findOneAndUpdate({_id:id},{$set:{isActive : false}});
 
 
         return res.status(200).json({success:true,message:"Password updated successfully"});
@@ -294,12 +299,11 @@ router.post('/get-expense',middleware,async(req, res)=>{
         const page = +req.query.page || 1
         const items = +req.body.items || 5
         console.log("max no. of items per page",items);
-        const exp = await  Expense.find({userId:req.user[0]._id}).skip((page - 1) * items).limit(items);
-        const totalExp = await Expense.countDocuments({userId:req.user[0]._id});
+        const exp = await  Expense.find({userId:req.user._id}).skip((page - 1) * items).limit(items);
+        const totalExp = await Expense.countDocuments({userId:req.user._id});
         console.log("298",totalExp);
         
         console.log("all expenses are: ",exp)
-        const [expenses ,totalExpenses ] = await Promise.all([exp , totalExp])
         return res.json({expenses:exp});
     } catch (e) {
         console.log(e)

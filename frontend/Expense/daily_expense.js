@@ -126,7 +126,7 @@ show_leaderBoard.addEventListener('click' , showLeaderboard)
         leaderboard_UL.innerHTML+='<h1>Leader Board</h1>';
         userLeaderboard.data.forEach((user) => {
             const leaderboard_LI= document.createElement('li');
-            leaderboard_LI.innerText=`Name--${user.name} Total Expense--${user.total_expense}`
+            leaderboard_LI.innerText=`Name--${user.name}   Total Expense--${user.totalExpense}`
             leaderboard_UL.appendChild(leaderboard_LI);
         })
     }
@@ -141,8 +141,8 @@ razor_pay.onclick= async function(e){
         "orderId":response.data.order.id,
         "handler":async function(response){
            const result= await axios.post('http://localhost:4000/user/updateTransaction',{
-            order_id:options.order_id,
-            payment_id:response.razorpay_payment_id,  
+            orderId:options.orderId,
+            paymentId:response.razorpay_paymentId,  
 
         }, {headers:{"Authorization":token}})
 

@@ -12,21 +12,8 @@ dot_env.config();
 
 
 premium.get('/showLeaderboard',middleware,async(req,res)=>{  //left
-    const result = await User.findAll({
-        attributes :[
-            'id',
-            'name',
-            [sequelize.fn('COALESCE',sequelize.literal('SUM(`expenses`.`amount`)'),0),'total_expense'],
-        ],
-        include:[
-            {
-                model : Expense,
-                attributes :[]
-            }
-        ],
-        group : ['id'],
-        order : [[sequelize.literal('total_expense'), 'DESC']]
-    })
+    const result = await User.find({}).sort({totalExpense : 'desc'})
+
     return res.json(result);
 })
 
@@ -93,10 +80,12 @@ premium.post('/downloadExpense',middleware, async(req,res) => {
 
     premium.post('/getdaily', middleware, async (req,res) => {
         try {
+            console.log("req.user._id.isPremiumUser",req.user.isPremiumUser);
             if (req.user.isPremiumUser) {
                 console.log("date: ",req.body.date)
-                const data = await Expense.find({userId:req.user[0]._id, date: req.body.date });
-                return res.json(data[0])
+                const data = await Expense.find({userId:req.user._id, date: req.body.date });
+                console.log("data",data);
+                return res.json(data)
             } else {
                 return res.status(403).json({ success: false, msg: "you are not a premium user" })
             }
@@ -116,8 +105,8 @@ premium.post('/downloadExpense',middleware, async(req,res) => {
                 // startDate= String(startDate);
                 // const arr= startDate.split('T');
                 // console.log(arr);
-                const result = await Expense.find({userId:req.user[0]._id, date:{ $gte: startDate, $lte: endDate}});
-                return res.json(result[0])
+                const result = await Expense.find({userId:req.user._id, date:{ $gte: startDate, $lte: endDate}});
+                return res.json(result)
             } else {
                 return res.status(403).json({ success: false, msg: "you are not a premium user" })
             }
@@ -133,8 +122,8 @@ premium.post('/downloadExpense',middleware, async(req,res) => {
                 const month = req.body.date;
                 const startDate = new Date(month);
                 const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 1);
-                const result = await Expense.find({userId:req.user[0]._id, date:{ $gte: startDate, $lt: endDate}});
-                return res.json(result[0]);
+                const result = await Expense.find({userId:req.user._id, date:{ $gte: startDate, $lt: endDate}});
+                return res.json(result);
             } else {
                 return res.status(403).json({ success: false, msg: "you are not a premium user" })
             }

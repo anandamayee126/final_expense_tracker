@@ -58,7 +58,7 @@ import mongoose from 'mongoose';
 const OrderSchema= new mongoose.Schema({
     userId:ObjectId,
     paymentId:String,
-    status:String
+    status:String,
+    orderId : String
 })
-
 export const Order=mongoose.model('order',OrderSchema);
